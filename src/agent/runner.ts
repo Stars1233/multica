@@ -177,6 +177,14 @@ export class Agent {
     const effectiveModel = resolvedModel ?? options.model ?? storedMeta?.model;
     let model = resolveModel({ ...options, provider: effectiveProvider, model: effectiveModel });
 
+    if (!model) {
+      throw new Error(
+        `Unknown model: provider="${effectiveProvider}", model="${effectiveModel}". ` +
+        `Check your LLM_PROVIDER and model env vars (e.g. OPENAI_MODEL). ` +
+        `For OpenRouter, use LLM_PROVIDER=openrouter.`,
+      );
+    }
+
     // Override base URL if provided via options or environment variable
     const baseUrl = resolveBaseUrl(model.provider, options.baseUrl);
     if (baseUrl) {
