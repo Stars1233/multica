@@ -189,8 +189,8 @@ rm -rf ~/.super-multica/skills/<skill-name>
 
 ## Skill Precedence
 
-Skills from different sources (highest priority wins):
+Skills load from two sources (highest priority wins):
 1. Profile-specific skills (`~/.super-multica/agent-profiles/<id>/skills/`)
-2. User-installed skills (`~/.super-multica/skills/`)
-3. Plugin skills (from npm packages)
-4. Bundled skills (built into the application)
+2. Global skills (`~/.super-multica/skills/`)
+
+Profile skills override global skills with the same ID.
