@@ -203,6 +203,30 @@ Skills 从两个来源加载，优先级从低到高：
 
 首次运行时，内置 skills 会自动复制到 managed 目录（`~/.super-multica/skills/`）。这使得用户可以编辑或删除它们。
 
+### 添加 Profile 专属 Skills
+
+Profile 专属 skills 不通过 CLI 安装，需要手动创建在 profile 的 skills 目录中：
+
+```bash
+# 创建 profile skills 目录
+mkdir -p ~/.super-multica/agent-profiles/<profile-id>/skills/<skill-name>
+
+# 创建 SKILL.md 文件
+cat > ~/.super-multica/agent-profiles/<profile-id>/skills/<skill-name>/SKILL.md << 'EOF'
+---
+name: My Profile Skill
+version: 1.0.0
+description: 此 profile 专属的 skill
+---
+
+# 说明
+
+你的 skill 说明内容...
+EOF
+```
+
+Profile skills 会自动覆盖同 ID 的 managed skills，允许按 profile 自定义。
+
 ### 资格过滤
 
 加载后，skills 会按以下条件过滤：
@@ -219,13 +243,15 @@ Skills 从两个来源加载，优先级从低到高：
 
 ## CLI 命令
 
+所有命令使用统一的 `multica` CLI（开发时使用 `pnpm multica`）。
+
 ### 列出 Skills
 
 ```bash
-pnpm skills:cli list           # 列出所有 skills
-pnpm skills:cli list -v        # 详细模式
-pnpm skills:cli status         # 汇总状态
-pnpm skills:cli status <id>    # 特定 skill 状态
+multica skills list           # 列出所有 skills
+multica skills list -v        # 详细模式
+multica skills status         # 汇总状态
+multica skills status <id>    # 特定 skill 状态
 ```
 
 ### 从 GitHub 安装
@@ -247,32 +273,32 @@ anthropics/skills/
 
 安装整个仓库（所有 16 个 skills）：
 ```bash
-pnpm skills:cli add anthropics/skills
+multica skills add anthropics/skills
 # 安装到：~/.super-multica/skills/skills/
 # 所有 skills 可用：algorithmic-art、brand-guidelines、pdf 等
 ```
 
 只安装单个 skill：
 ```bash
-pnpm skills:cli add anthropics/skills/skills/pdf
+multica skills add anthropics/skills/skills/pdf
 # 安装到：~/.super-multica/skills/pdf/
 # 只安装 pdf skill
 ```
 
 从特定分支或标签安装：
 ```bash
-pnpm skills:cli add anthropics/skills@main
+multica skills add anthropics/skills@main
 ```
 
 使用完整 URL：
 ```bash
-pnpm skills:cli add https://github.com/anthropics/skills
-pnpm skills:cli add https://github.com/anthropics/skills/tree/main/skills/pdf
+multica skills add https://github.com/anthropics/skills
+multica skills add https://github.com/anthropics/skills/tree/main/skills/pdf
 ```
 
 强制覆盖现有：
 ```bash
-pnpm skills:cli add anthropics/skills --force
+multica skills add anthropics/skills --force
 ```
 
 **支持的格式：**
@@ -288,15 +314,15 @@ pnpm skills:cli add anthropics/skills --force
 ### 移除 Skills
 
 ```bash
-pnpm skills:cli remove <name>   # 移除已安装的 skill
-pnpm skills:cli remove          # 列出已安装的 skills
+multica skills remove <name>   # 移除已安装的 skill
+multica skills remove          # 列出已安装的 skills
 ```
 
 ### 安装依赖
 
 ```bash
-pnpm skills:cli install <id>              # 安装 skill 依赖
-pnpm skills:cli install <id> <install-id> # 特定安装选项
+multica skills install <id>              # 安装 skill 依赖
+multica skills install <id> <install-id> # 特定安装选项
 ```
 
 ---
@@ -308,8 +334,8 @@ pnpm skills:cli install <id> <install-id> # 特定安装选项
 ### 汇总状态
 
 ```bash
-pnpm skills:cli status        # 显示按问题类型分组的汇总
-pnpm skills:cli status -v     # 详细模式带提示
+multica skills status        # 显示按问题类型分组的汇总
+multica skills status -v     # 详细模式带提示
 ```
 
 输出显示：
@@ -319,7 +345,7 @@ pnpm skills:cli status -v     # 详细模式带提示
 ### 详细 Skill 状态
 
 ```bash
-pnpm skills:cli status <skill-id>
+multica skills status <skill-id>
 ```
 
 输出包括：
@@ -387,7 +413,7 @@ import {
 
 **Skill 未显示为符合条件？**
 
-运行 `pnpm skills:cli status <skill-id>` 查看详细诊断及可操作的提示。
+运行 `multica skills status <skill-id>` 查看详细诊断及可操作的提示。
 
 **覆盖内置 skill？**
 

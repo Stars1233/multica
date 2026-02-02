@@ -203,6 +203,30 @@ Higher priority sources override skills with the same ID.
 
 On first run, bundled skills are automatically copied to the managed directory (`~/.super-multica/skills/`). This makes them editable and allows users to customize or remove them.
 
+### Adding Profile-Specific Skills
+
+Profile-specific skills are not installed via CLI. Instead, manually create them in the profile's skills directory:
+
+```bash
+# Create profile skills directory
+mkdir -p ~/.super-multica/agent-profiles/<profile-id>/skills/<skill-name>
+
+# Create the SKILL.md file
+cat > ~/.super-multica/agent-profiles/<profile-id>/skills/<skill-name>/SKILL.md << 'EOF'
+---
+name: My Profile Skill
+version: 1.0.0
+description: A skill specific to this profile
+---
+
+# Instructions
+
+Your skill instructions here...
+EOF
+```
+
+Profile skills automatically override managed skills with the same ID, allowing per-profile customization.
+
 ### Eligibility Filtering
 
 After loading, skills are filtered by:
