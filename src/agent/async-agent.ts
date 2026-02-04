@@ -58,6 +58,22 @@ export class AsyncAgent {
     return this.channel;
   }
 
+  /**
+   * Subscribe to agent events directly (supports multiple subscribers).
+   * Unlike read(), this allows multiple consumers to receive the same events.
+   */
+  subscribe(callback: (event: AgentEvent) => void): () => void {
+    console.log(`[AsyncAgent] Adding subscriber for agent: ${this.sessionId}`);
+    const unsubscribe = this.agent.subscribe((event) => {
+      console.log(`[AsyncAgent] Event received: ${event.type}`);
+      callback(event);
+    });
+    return () => {
+      console.log(`[AsyncAgent] Removing subscriber for agent: ${this.sessionId}`);
+      unsubscribe();
+    };
+  }
+
   /** Returns a promise that resolves when the current message queue is drained */
   waitForIdle(): Promise<void> {
     return this.queue;
