@@ -1,20 +1,20 @@
 "use client"
 
 import { memo, useState } from "react"
-import { HugeiconsIcon } from "@hugeicons/react"
 import {
-  File01Icon,
-  FloppyDiskIcon,
-  FileEditIcon,
-  CommandLineIcon,
-  Search01Icon,
-  FolderOpenIcon,
-  GlobeIcon,
-  DatabaseIcon,
-  GitBranchIcon,
-  ChartBarLineIcon,
-  ArrowRight01Icon,
-} from "@hugeicons/core-free-icons"
+  File,
+  Save,
+  FileEdit,
+  Terminal,
+  Search,
+  FolderOpen,
+  Globe,
+  Database,
+  GitBranch,
+  BarChart3,
+  ChevronRight,
+  type LucideIcon,
+} from "lucide-react"
 import { cn, getTextContent } from "@multica/ui/lib/utils"
 import type { Message } from "@multica/store"
 
@@ -22,25 +22,25 @@ import type { Message } from "@multica/store"
 // Tool display config
 // ---------------------------------------------------------------------------
 
-const TOOL_DISPLAY: Record<string, { label: string; icon: typeof File01Icon }> = {
-  read:            { label: "Read",          icon: File01Icon },
-  write:           { label: "Write",         icon: FloppyDiskIcon },
-  edit:            { label: "Edit",          icon: FileEditIcon },
-  exec:            { label: "Exec",          icon: CommandLineIcon },
-  bash:            { label: "Exec",          icon: CommandLineIcon },
-  process:         { label: "Process",       icon: CommandLineIcon },
-  grep:            { label: "Grep",          icon: Search01Icon },
-  find:            { label: "Find",          icon: Search01Icon },
-  ls:              { label: "ListDir",       icon: FolderOpenIcon },
-  glob:            { label: "Glob",          icon: Search01Icon },
-  web_search:      { label: "WebSearch",     icon: GlobeIcon },
-  web_fetch:       { label: "WebFetch",      icon: GlobeIcon },
-  memory_get:      { label: "MemoryGet",     icon: DatabaseIcon },
-  memory_set:      { label: "MemorySet",     icon: DatabaseIcon },
-  memory_delete:   { label: "MemoryDelete",  icon: DatabaseIcon },
-  memory_list:     { label: "MemoryList",    icon: DatabaseIcon },
-  sessions_spawn:  { label: "SpawnSession",  icon: GitBranchIcon },
-  data:            { label: "Data",          icon: ChartBarLineIcon },
+const TOOL_DISPLAY: Record<string, { label: string; icon: LucideIcon }> = {
+  read:            { label: "Read",          icon: File },
+  write:           { label: "Write",         icon: Save },
+  edit:            { label: "Edit",          icon: FileEdit },
+  exec:            { label: "Exec",          icon: Terminal },
+  bash:            { label: "Exec",          icon: Terminal },
+  process:         { label: "Process",       icon: Terminal },
+  grep:            { label: "Grep",          icon: Search },
+  find:            { label: "Find",          icon: Search },
+  ls:              { label: "ListDir",       icon: FolderOpen },
+  glob:            { label: "Glob",          icon: Search },
+  web_search:      { label: "WebSearch",     icon: Globe },
+  web_fetch:       { label: "WebFetch",      icon: Globe },
+  memory_get:      { label: "MemoryGet",     icon: Database },
+  memory_set:      { label: "MemorySet",     icon: Database },
+  memory_delete:   { label: "MemoryDelete",  icon: Database },
+  memory_list:     { label: "MemoryList",    icon: Database },
+  sessions_spawn:  { label: "SpawnSession",  icon: GitBranch },
+  data:            { label: "Data",          icon: BarChart3 },
 }
 
 // ---------------------------------------------------------------------------
@@ -141,7 +141,7 @@ export const ToolCallItem = memo(function ToolCallItem({ message }: { message: M
   const [expanded, setExpanded] = useState(false)
   const { toolName = "", toolStatus = "running", toolArgs, content } = message
 
-  const display = TOOL_DISPLAY[toolName] ?? { label: toolName, icon: CommandLineIcon }
+  const display = TOOL_DISPLAY[toolName] ?? { label: toolName, icon: Terminal }
   const isFinished = toolStatus !== "running"
   const resultText = getTextContent(content)
   const hasDetails = isFinished && !!resultText
@@ -177,9 +177,7 @@ export const ToolCallItem = memo(function ToolCallItem({ message }: { message: M
         />
 
         {/* Tool icon */}
-        <HugeiconsIcon
-          icon={display.icon}
-          strokeWidth={2}
+        <display.icon
           className={cn("size-3.5 shrink-0", toolStatus === "error" && "text-[var(--tool-error)]")}
         />
 
@@ -212,9 +210,7 @@ export const ToolCallItem = memo(function ToolCallItem({ message }: { message: M
 
         {/* Chevron — visible on hover when expandable */}
         {hasDetails && (
-          <HugeiconsIcon
-            icon={ArrowRight01Icon}
-            strokeWidth={2}
+          <ChevronRight
             className={cn(
               "size-3 text-muted-foreground/40 shrink-0",
               "transition-[transform,opacity] duration-150",

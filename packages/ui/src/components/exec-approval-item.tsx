@@ -1,13 +1,7 @@
 "use client"
 
 import { memo, useState, useEffect, useCallback } from "react"
-import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  Tick01Icon,
-  TickDouble01Icon,
-  Cancel01Icon,
-  CommandLineIcon,
-} from "@hugeicons/core-free-icons"
+import { Check, CheckCheck, X, Terminal } from "lucide-react"
 import { cn } from "@multica/ui/lib/utils"
 import { Button } from "@multica/ui/components/ui/button"
 
@@ -75,7 +69,7 @@ export const ExecApprovalItem = memo(function ExecApprovalItem({
         {/* Header: icon + risk label + countdown */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <HugeiconsIcon icon={CommandLineIcon} strokeWidth={2} className="size-3.5 shrink-0" />
+            <Terminal className="size-3.5 shrink-0" />
             <span className="font-medium text-foreground">{riskLabel}</span>
           </div>
           {remaining !== null && remaining > 0 && !decided && (
@@ -113,7 +107,7 @@ export const ExecApprovalItem = memo(function ExecApprovalItem({
               className="h-7 text-xs gap-1.5 px-2.5"
               onClick={() => handleDecision("allow-once")}
             >
-              <HugeiconsIcon icon={Tick01Icon} strokeWidth={2} className="size-3.5" />
+              <Check className="size-3.5" />
               Allow
             </Button>
             <Button
@@ -122,7 +116,7 @@ export const ExecApprovalItem = memo(function ExecApprovalItem({
               className="h-7 text-xs gap-1.5 px-2.5"
               onClick={() => handleDecision("allow-always")}
             >
-              <HugeiconsIcon icon={TickDouble01Icon} strokeWidth={2} className="size-3.5" />
+              <CheckCheck className="size-3.5" />
               Always
             </Button>
             <Button
@@ -131,7 +125,7 @@ export const ExecApprovalItem = memo(function ExecApprovalItem({
               className="h-7 text-xs gap-1.5 px-2.5"
               onClick={() => handleDecision("deny")}
             >
-              <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} className="size-3.5" />
+              <X className="size-3.5" />
               Deny
             </Button>
           </div>

@@ -11,8 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/text";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import { ArrowUp01Icon } from "@hugeicons/core-free-icons";
+import { ArrowUp } from "lucide-react-native";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -152,11 +151,9 @@ export default function Index() {
               className="ml-1.5 h-8 w-8 items-center justify-center rounded-full bg-primary"
               style={{ opacity: canSend ? 1 : 0.5 }}
             >
-              <HugeiconsIcon
-                icon={ArrowUp01Icon}
+              <ArrowUp
                 size={18}
                 color="hsl(225, 100%, 96.4%)"
-                strokeWidth={2.5}
               />
             </Pressable>
           </View>

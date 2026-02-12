@@ -7,7 +7,7 @@ export function Header() {
       <header className="container flex justify-between items-center p-2">
           <div className="flex items-center gap-2.5">
             <img src="/logo.svg" alt="Multica" className="size-6 rounded-md" />
-            <span className="text-sm tracking-wide font-[family-name:var(--font-brand)]">
+            <span className="text-sm tracking-wide font-brand">
               Multica
             </span>
           </div>

@@ -1,6 +1,5 @@
 import { Button } from '@multica/ui/components/ui/button'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { Tick02Icon } from '@hugeicons/core-free-icons'
+import { Check } from 'lucide-react'
 import { cn } from '@multica/ui/lib/utils'
 
 interface ProviderSetupProps {
@@ -64,7 +63,7 @@ function ProviderCard({
 
       {provider.available ? (
         <div className="flex items-center gap-2">
-          <HugeiconsIcon icon={Tick02Icon} className="size-4 text-primary" />
+          <Check className="size-4 text-primary" />
           <Button
             size="sm"
             variant="ghost"

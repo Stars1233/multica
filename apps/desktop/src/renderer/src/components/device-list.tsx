@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { Button } from '@multica/ui/components/ui/button'
-import { HugeiconsIcon } from '@hugeicons/react'
 import {
-  SmartPhone01Icon,
-  Delete02Icon,
-  Loading03Icon,
-  RotateClockwiseIcon,
-} from '@hugeicons/core-free-icons'
+  Smartphone,
+  Trash2,
+  Loader2,
+  RotateCw,
+} from 'lucide-react'
 import { useDevices, type DeviceEntry } from '../hooks/use-devices'
 import { parseUserAgent } from '../lib/parse-user-agent'
 
@@ -62,7 +61,7 @@ function DeviceItem({
   return (
     <div className="flex items-center justify-between px-4 py-3 hover:bg-muted/20 transition-colors">
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        <HugeiconsIcon icon={SmartPhone01Icon} className="size-4 text-muted-foreground shrink-0" />
+        <Smartphone className="size-4 text-muted-foreground shrink-0" />
         <div className="min-w-0">
           <div className="text-sm font-medium truncate">{displayName}</div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -80,9 +79,9 @@ function DeviceItem({
         disabled={revoking}
       >
         {revoking ? (
-          <HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" />
+          <Loader2 className="size-4 animate-spin" />
         ) : (
-          <HugeiconsIcon icon={Delete02Icon} className="size-4" />
+          <Trash2 className="size-4" />
         )}
       </Button>
     </div>
@@ -90,14 +89,21 @@ function DeviceItem({
 }
 
 export function DeviceList() {
-  const { devices, loading, refresh, revokeDevice } = useDevices()
+  const { devices, loading, refreshing, refresh, revokeDevice } = useDevices()
 
   if (loading) {
     return null
   }
 
   if (devices.length === 0) {
-    return null
+    return (
+      <div className="h-full flex flex-col items-center justify-center text-center">
+        <Smartphone className="size-8 text-muted-foreground/40 mb-3" />
+        <p className="text-sm text-muted-foreground">
+          No devices connected yet.
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -111,8 +117,13 @@ export function DeviceList() {
           size="sm"
           className="h-7 px-2 text-xs gap-1"
           onClick={refresh}
+          disabled={refreshing}
         >
-          <HugeiconsIcon icon={RotateClockwiseIcon} className="size-3" />
+          {refreshing ? (
+            <Loader2 className="size-3 animate-spin" />
+          ) : (
+            <RotateCw className="size-3" />
+          )}
           Refresh
         </Button>
       </div>

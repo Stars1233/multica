@@ -22,7 +22,7 @@ export function AppSidebar({ children }: AppSidebarProps) {
             alt="Multica"
             className="size-7 rounded-md"
           />
-          <span className="text-sm tracking-wide font-[family-name:var(--font-brand)]">
+          <span className="text-sm tracking-wide font-brand">
             Multica
           </span>
         </div>

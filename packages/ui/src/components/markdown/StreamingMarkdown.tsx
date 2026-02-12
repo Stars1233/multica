@@ -49,6 +49,7 @@ function splitIntoBlocks(content: string): Block[] {
   const lines = content.split('\n')
   let currentBlock = ''
   let inCodeBlock = false
+  let inMathBlock = false
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i] ?? ''
@@ -73,6 +74,26 @@ function splitIntoBlocks(content: string): Block[] {
     } else if (inCodeBlock) {
       // Inside code block - append line
       currentBlock += line + '\n'
+    // Check for display math fence ($$)
+    } else if (line.trim() === '$$') {
+      if (!inMathBlock) {
+        // Starting a math block - flush current paragraph first
+        if (currentBlock.trim()) {
+          blocks.push({ content: currentBlock.trim(), isCodeBlock: false })
+          currentBlock = ''
+        }
+        inMathBlock = true
+        currentBlock = line + '\n'
+      } else {
+        // Ending a math block
+        currentBlock += line
+        blocks.push({ content: currentBlock, isCodeBlock: false })
+        currentBlock = ''
+        inMathBlock = false
+      }
+    } else if (inMathBlock) {
+      // Inside math block - append line (don't split on blank lines)
+      currentBlock += line + '\n'
     } else if (line === '') {
       // Empty line outside code block = paragraph boundary
       if (currentBlock.trim()) {
@@ -92,8 +113,8 @@ function splitIntoBlocks(content: string): Block[] {
   // Flush remaining content
   if (currentBlock) {
     blocks.push({
-      content: inCodeBlock ? currentBlock : currentBlock.trim(),
-      isCodeBlock: inCodeBlock // Unclosed code block = still streaming
+      content: inCodeBlock || inMathBlock ? currentBlock : currentBlock.trim(),
+      isCodeBlock: inCodeBlock
     })
   }
 

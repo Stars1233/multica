@@ -1,11 +1,7 @@
 "use client"
 
 import { memo, useState } from "react"
-import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  AiBrain01Icon,
-  ArrowRight01Icon,
-} from "@hugeicons/core-free-icons"
+import { Brain, ChevronRight } from "lucide-react"
 import { cn } from "@multica/ui/lib/utils"
 
 interface ThinkingItemProps {
@@ -47,9 +43,7 @@ export const ThinkingItem = memo(function ThinkingItem({ thinking, isStreaming }
         />
 
         {/* Icon */}
-        <HugeiconsIcon
-          icon={AiBrain01Icon}
-          strokeWidth={2}
+        <Brain
           className="size-3.5 shrink-0"
         />
 
@@ -67,9 +61,7 @@ export const ThinkingItem = memo(function ThinkingItem({ thinking, isStreaming }
 
         {/* Chevron — visible on hover when expandable */}
         {hasContent && (
-          <HugeiconsIcon
-            icon={ArrowRight01Icon}
-            strokeWidth={2}
+          <ChevronRight
             className={cn(
               "size-3 text-muted-foreground/40 shrink-0",
               "transition-[transform,opacity] duration-150",

@@ -9,7 +9,7 @@
     "baseColor": "zinc",
     "cssVariables": true
   },
-  "iconLibrary": "hugeicons",
+  "iconLibrary": "lucide",
   "aliases": {
     "components": "@multica/ui/components",
     "utils": "@multica/ui/lib/utils",

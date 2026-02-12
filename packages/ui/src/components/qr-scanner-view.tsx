@@ -5,14 +5,7 @@ import "./qr-scanner.css"
 import { useState, useCallback, useRef, useEffect } from "react"
 import { useQrScanner } from "@multica/ui/hooks/use-qr-scanner"
 import { Spinner } from "@multica/ui/components/spinner"
-import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  Camera01Icon,
-  Cancel01Icon,
-  CheckmarkCircle02Icon,
-  Alert02Icon,
-  FlashlightIcon,
-} from "@hugeicons/core-free-icons"
+import { Camera, X, CheckCircle, AlertCircle, Flashlight } from "lucide-react"
 
 type ScannerState =
   | "idle"
@@ -203,8 +196,7 @@ export function QrScannerView({
             onClick={handleStart}
             className="flex items-center justify-center size-16 rounded-full bg-foreground/10 hover:bg-foreground/20 transition-colors"
           >
-            <HugeiconsIcon
-              icon={Camera01Icon}
+            <Camera
               className="size-7 text-muted-foreground"
             />
           </button>
@@ -252,10 +244,8 @@ export function QrScannerView({
           onClick={handleClose}
           className="absolute top-3 left-3 flex items-center justify-center size-8 rounded-full bg-black/40 hover:bg-black/60 transition-colors z-10"
         >
-          <HugeiconsIcon
-            icon={Cancel01Icon}
+          <X
             className="size-4 text-white"
-            strokeWidth={2}
           />
         </button>
       )}
@@ -267,8 +257,7 @@ export function QrScannerView({
           onClick={toggleFlash}
           className="absolute top-3 right-3 flex items-center justify-center size-8 rounded-full bg-black/40 hover:bg-black/60 transition-colors"
         >
-          <HugeiconsIcon
-            icon={FlashlightIcon}
+          <Flashlight
             className="size-4 text-white"
           />
         </button>
@@ -277,8 +266,7 @@ export function QrScannerView({
       {/* Success — full overlay */}
       {state === "success" && (
         <div className="absolute inset-0 flex items-center justify-center bg-[color:var(--tool-success)]/15 animate-in fade-in duration-200">
-          <HugeiconsIcon
-            icon={CheckmarkCircle02Icon}
+          <CheckCircle
             className="size-14 text-[color:var(--tool-success)] animate-in zoom-in duration-300"
           />
         </div>
@@ -287,8 +275,7 @@ export function QrScannerView({
       {/* Error — full overlay */}
       {state === "error" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[color:var(--tool-error)]/15 animate-in fade-in duration-200">
-          <HugeiconsIcon
-            icon={Alert02Icon}
+          <AlertCircle
             className="size-12 text-[color:var(--tool-error)]"
           />
           {errorMessage && (

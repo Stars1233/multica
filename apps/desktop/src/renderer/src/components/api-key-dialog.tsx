@@ -10,8 +10,7 @@ import {
 import { Button } from '@multica/ui/components/ui/button'
 import { Input } from '@multica/ui/components/ui/input'
 import { Label } from '@multica/ui/components/ui/label'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { Loading03Icon, Key01Icon, Tick02Icon } from '@hugeicons/core-free-icons'
+import { Loader2, Key, Check } from 'lucide-react'
 
 type Phase = 'input' | 'saving' | 'testing' | 'success' | 'error'
 
@@ -111,7 +110,7 @@ export function ApiKeyDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <HugeiconsIcon icon={Key01Icon} className="size-5" />
+            <Key className="size-5" />
             Configure {providerName}
           </DialogTitle>
           <DialogDescription>
@@ -153,21 +152,21 @@ export function ApiKeyDialog({
           {/* Status messages */}
           {phase === 'saving' && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
               Saving API key...
             </div>
           )}
 
           {phase === 'testing' && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
               Testing connection...
             </div>
           )}
 
           {phase === 'success' && (
             <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-              <HugeiconsIcon icon={Tick02Icon} className="size-4" />
+              <Check className="size-4" />
               Connected successfully!
             </div>
           )}

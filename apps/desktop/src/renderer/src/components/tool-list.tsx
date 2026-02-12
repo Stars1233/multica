@@ -1,35 +1,44 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Switch } from '@multica/ui/components/ui/switch'
 import { Button } from '@multica/ui/components/ui/button'
-import { HugeiconsIcon } from '@hugeicons/react'
 import {
-  RotateClockwiseIcon,
-  FolderOpenIcon,
-  CodeIcon,
-  GlobalIcon,
-  AiBrainIcon,
-  ArrowDown01Icon,
-  ArrowUp01Icon,
-  Loading03Icon,
-  Time04Icon,
-  UserMultipleIcon,
-} from '@hugeicons/core-free-icons'
-import type { ToolInfo, ToolGroup } from '../hooks/use-tools'
+  RotateCw,
+  FolderOpen,
+  Code,
+  Globe,
+  Brain,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  Clock,
+  Users,
+} from 'lucide-react'
+import type { ToolInfo } from '../stores/tools'
+
+// Group display names
+const GROUP_NAMES: Record<string, string> = {
+  fs: 'File System',
+  runtime: 'Runtime',
+  web: 'Web',
+  memory: 'Memory',
+  subagent: 'Subagent',
+  cron: 'Cron',
+  other: 'Other',
+}
 
 // Group icons
-const GROUP_ICONS: Record<string, typeof FolderOpenIcon> = {
-  fs: FolderOpenIcon,
-  runtime: CodeIcon,
-  web: GlobalIcon,
-  memory: AiBrainIcon,
-  subagent: UserMultipleIcon,
-  cron: Time04Icon,
-  other: CodeIcon,
+const GROUP_ICONS: Record<string, typeof FolderOpen> = {
+  fs: FolderOpen,
+  runtime: Code,
+  web: Globe,
+  memory: Brain,
+  subagent: Users,
+  cron: Clock,
+  other: Code,
 }
 
 interface ToolListProps {
   tools: ToolInfo[]
-  groups: ToolGroup[]
   loading: boolean
   error: string | null
   onToggleTool: (toolName: string) => Promise<void>
@@ -38,12 +47,23 @@ interface ToolListProps {
 
 export function ToolList({
   tools,
-  groups,
   loading,
   error,
   onToggleTool,
   onRefresh,
 }: ToolListProps) {
+  // Compute groups from tools
+  const groups = useMemo(() => {
+    const groupIds = [...new Set(tools.map(t => t.group))]
+    return groupIds.map(id => ({
+      id,
+      name: GROUP_NAMES[id] || id,
+      tools: tools.filter(t => t.group === id),
+      enabledCount: tools.filter(t => t.group === id && t.enabled).length,
+      totalCount: tools.filter(t => t.group === id).length,
+    }))
+  }, [tools])
+
   // Track which groups are expanded
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     () => new Set(groups.map((g) => g.id))
@@ -77,18 +97,10 @@ export function ToolList({
     }
   }
 
-  // Group tools by their group
-  const toolsByGroup = groups.map((group) => ({
-    ...group,
-    tools: tools.filter((t) => t.group === group.id),
-    enabledCount: tools.filter((t) => t.group === group.id && t.enabled).length,
-    totalCount: tools.filter((t) => t.group === group.id).length,
-  }))
-
   if (loading && tools.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
-        <HugeiconsIcon icon={Loading03Icon} className="size-6 animate-spin text-muted-foreground" />
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
         <span className="ml-2 text-muted-foreground">Loading tools...</span>
       </div>
     )
@@ -109,10 +121,11 @@ export function ToolList({
           className="gap-1.5"
           disabled={loading}
         >
-          <HugeiconsIcon
-            icon={loading ? Loading03Icon : RotateClockwiseIcon}
-            className={`size-4 ${loading ? 'animate-spin' : ''}`}
-          />
+          {loading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <RotateCw className="size-4" />
+          )}
           Refresh
         </Button>
       </div>
@@ -126,9 +139,9 @@ export function ToolList({
 
       {/* Tool groups */}
       <div className="space-y-2">
-        {toolsByGroup.map((group) => {
+        {groups.map((group) => {
           const isExpanded = expandedGroups.has(group.id)
-          const GroupIcon = GROUP_ICONS[group.id] || CodeIcon
+          const GroupIcon = GROUP_ICONS[group.id] || Code
 
           return (
             <div
@@ -141,16 +154,17 @@ export function ToolList({
                 className="w-full flex items-center justify-between px-4 py-3 bg-muted/30 hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <HugeiconsIcon icon={GroupIcon} className="size-5 text-muted-foreground" />
+                  <GroupIcon className="size-5 text-muted-foreground" />
                   <span className="font-medium">{group.name}</span>
                   <span className="text-xs text-muted-foreground">
                     {group.enabledCount}/{group.totalCount} enabled
                   </span>
                 </div>
-                <HugeiconsIcon
-                  icon={isExpanded ? ArrowUp01Icon : ArrowDown01Icon}
-                  className="size-4 text-muted-foreground"
-                />
+                {isExpanded ? (
+                  <ChevronUp className="size-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="size-4 text-muted-foreground" />
+                )}
               </button>
 
               {/* Group tools */}
@@ -183,7 +197,7 @@ export function ToolList({
                         </div>
                         <div className="flex items-center gap-2">
                           {isToggling && (
-                            <HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin text-muted-foreground" />
+                            <Loader2 className="size-4 animate-spin text-muted-foreground" />
                           )}
                           <Switch
                             checked={tool.enabled}

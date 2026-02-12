@@ -1,27 +1,19 @@
 import { cn } from '@multica/ui/lib/utils'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { Tick02Icon } from '@hugeicons/core-free-icons'
+import { Check } from 'lucide-react'
 
-export type StepId = 'permissions' | 'setup' | 'connect' | 'try-it'
-
-interface Step {
-  id: StepId
-  label: string
-}
-
-const steps: Step[] = [
-  { id: 'permissions', label: 'Permissions' },
-  { id: 'setup', label: 'Provider' },
-  { id: 'connect', label: 'Connect' },
-  { id: 'try-it', label: 'Try it' },
+const steps = [
+  { label: 'Privacy' },
+  { label: 'Provider' },
+  { label: 'Connect' },
+  { label: 'Try it' },
 ]
 
 interface StepperProps {
-  currentStep: StepId
+  currentStep: number // 1-based index
 }
 
 export function Stepper({ currentStep }: StepperProps) {
-  const currentIndex = steps.findIndex((s) => s.id === currentStep)
+  const currentIndex = currentStep - 1 // Convert to 0-based
   // Progress: 0% at step 0, 50% at step 1, 100% at step 2
   const progress = (currentIndex / (steps.length - 1)) * 100
 
@@ -31,10 +23,10 @@ export function Stepper({ currentStep }: StepperProps) {
       <nav className="flex items-center justify-center gap-3">
         {steps.map((step, index) => {
           const isCompleted = index < currentIndex
-          const isCurrent = step.id === currentStep
+          const isCurrent = index === currentIndex
 
           return (
-            <div key={step.id} className="flex items-center gap-3">
+            <div key={step.label} className="flex items-center gap-3">
               {index > 0 && (
                 <span
                   className={cn(
@@ -56,10 +48,7 @@ export function Stepper({ currentStep }: StepperProps) {
                 )}
               >
                 {isCompleted && (
-                  <HugeiconsIcon
-                    icon={Tick02Icon}
-                    className="size-3.5 text-foreground"
-                  />
+                  <Check className="size-3.5 text-foreground" />
                 )}
                 {step.label}
               </span>

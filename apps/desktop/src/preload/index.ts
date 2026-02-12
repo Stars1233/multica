@@ -103,6 +103,14 @@ const electronAPI = {
     getFlags: (): Promise<{ forceOnboarding: boolean }> => ipcRenderer.invoke('app:getFlags'),
   },
 
+  // App state (persisted to file system)
+  appState: {
+    /** Get onboarding completed status */
+    getOnboardingCompleted: (): Promise<boolean> => ipcRenderer.invoke('appState:getOnboardingCompleted'),
+    /** Set onboarding completed status */
+    setOnboardingCompleted: (completed: boolean): Promise<void> => ipcRenderer.invoke('appState:setOnboardingCompleted', completed),
+  },
+
   // Hub management
   hub: {
     init: () => ipcRenderer.invoke('hub:init'),

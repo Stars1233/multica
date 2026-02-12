@@ -9,6 +9,7 @@ export { registerProviderIpcHandlers } from './provider.js'
 export { registerChannelsIpcHandlers } from './channels.js'
 export { registerCronIpcHandlers } from './cron.js'
 export { registerHeartbeatIpcHandlers } from './heartbeat.js'
+export { registerAppStateIpcHandlers } from './app-state.js'
 
 import { registerAgentIpcHandlers, cleanupAgent } from './agent.js'
 import { registerSkillsIpcHandlers } from './skills.js'
@@ -18,6 +19,7 @@ import { registerProviderIpcHandlers } from './provider.js'
 import { registerChannelsIpcHandlers } from './channels.js'
 import { registerCronIpcHandlers } from './cron.js'
 import { registerHeartbeatIpcHandlers } from './heartbeat.js'
+import { registerAppStateIpcHandlers } from './app-state.js'
 
 /**
  * Register all IPC handlers.
@@ -32,6 +34,7 @@ export function registerAllIpcHandlers(): void {
   registerChannelsIpcHandlers()
   registerCronIpcHandlers()
   registerHeartbeatIpcHandlers()
+  registerAppStateIpcHandlers()
 }
 
 /**

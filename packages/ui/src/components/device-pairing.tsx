@@ -5,13 +5,7 @@ import { Button } from "@multica/ui/components/ui/button";
 import { Textarea } from "@multica/ui/components/ui/textarea";
 import { Spinner } from "@multica/ui/components/spinner";
 import { useIsMobile } from "@multica/ui/hooks/use-mobile";
-import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Camera01Icon,
-  TextIcon,
-  CheckmarkCircle02Icon,
-  Alert02Icon,
-} from "@hugeicons/core-free-icons";
+import { Camera, Type, CheckCircle, AlertCircle } from "lucide-react";
 import { QrScannerView } from "@multica/ui/components/qr-scanner-view";
 import { MulticaIcon } from "@multica/ui/components/multica-icon";
 import { parseConnectionCode } from "@multica/store";
@@ -107,8 +101,7 @@ function RejectedStatus({
 
   return (
     <StatusWrapper fullscreen={fullscreen}>
-      <HugeiconsIcon
-        icon={Alert02Icon}
+      <AlertCircle
         className="size-14 text-destructive animate-in zoom-in duration-300"
       />
       <div className="text-center space-y-1.5">
@@ -249,7 +242,7 @@ export function DevicePairing({
           className="text-xs gap-1.5 h-7 px-3"
           onClick={() => setMode("scan")}
         >
-          <HugeiconsIcon icon={Camera01Icon} className="size-3.5" />
+          <Camera className="size-3.5" />
           Scan
         </Button>
         <Button
@@ -258,7 +251,7 @@ export function DevicePairing({
           className="text-xs gap-1.5 h-7 px-3"
           onClick={() => setMode("paste")}
         >
-          <HugeiconsIcon icon={TextIcon} className="size-3.5" />
+          <Type className="size-3.5" />
           Paste
         </Button>
       </div>
@@ -287,16 +280,14 @@ export function DevicePairing({
             )}
 
             {pasteState === "success" && (
-              <HugeiconsIcon
-                icon={CheckmarkCircle02Icon}
+              <CheckCircle
                 className="size-14 text-(--tool-success) animate-in zoom-in duration-300"
               />
             )}
 
             {pasteState === "error" && (
               <div className="flex flex-col items-center justify-center gap-2">
-                <HugeiconsIcon
-                  icon={Alert02Icon}
+                <AlertCircle
                   className="size-12 text-(--tool-error)"
                 />
                 {pasteError && (

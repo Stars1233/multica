@@ -53,8 +53,10 @@ const VERIFY_TIMEOUT_MS = 30_000;
 
 @Injectable()
 export class TelegramService implements OnModuleInit {
+  private static readonly TYPING_TIMEOUT_MS = 60_000; // 1 minute safety cap
   private bot: Bot | null = null;
   private pendingRequests = new Map<string, PendingRequest>();
+  private typingTimers = new Map<string, ReturnType<typeof setInterval>>();
 
   private readonly logger = new Logger(TelegramService.name);
 
@@ -351,12 +353,21 @@ export class TelegramService implements OnModuleInit {
           return;
         }
 
-        // Stream event — extract text content for Telegram
+        // Stream event — typing indicator + extract text content for Telegram
         if (msg.action === StreamAction) {
           const streamPayload = msg.payload as StreamPayload;
           const event = streamPayload?.event;
-          if (event && "type" in event && event.type === "message_end") {
-            // Extract final text from the message
+          if (!event || !("type" in event)) return;
+
+          // Start typing when LLM begins generating
+          if (event.type === "message_start") {
+            this.startTyping(telegramUserId);
+            return;
+          }
+
+          // Stop typing + send text on message_end
+          if (event.type === "message_end") {
+            this.stopTyping(telegramUserId);
             const agentMsg = (event as { message?: { content?: Array<{ type: string; text?: string }> } }).message;
             if (agentMsg?.content) {
               const textContent = agentMsg.content
@@ -367,7 +378,15 @@ export class TelegramService implements OnModuleInit {
                 this.sendToTelegram(deviceId, textContent);
               }
             }
+            return;
           }
+
+          // Stop typing on error
+          if (event.type === "agent_error") {
+            this.stopTyping(telegramUserId);
+            return;
+          }
+
           return;
         }
 
@@ -382,6 +401,7 @@ export class TelegramService implements OnModuleInit {
 
         // Error messages
         if (msg.action === "error") {
+          this.stopTyping(telegramUserId);
           const payload = msg.payload as { message?: string; code?: string };
           if (payload?.message) {
             this.sendToTelegram(deviceId, `Error: ${payload.message}`);
@@ -389,6 +409,34 @@ export class TelegramService implements OnModuleInit {
         }
       },
     });
+  }
+
+  /** Start sending "typing" indicator to Telegram at regular intervals */
+  private startTyping(telegramUserId: string): void {
+    if (this.typingTimers.has(telegramUserId)) return;
+    const chatId = Number(telegramUserId);
+    const send = () => {
+      void this.bot?.api.sendChatAction(chatId, "typing").catch(() => {});
+    };
+    send();
+    const interval = setInterval(send, 5000);
+    this.typingTimers.set(telegramUserId, interval);
+
+    // Safety timeout: auto-stop if no message_end/agent_error arrives
+    setTimeout(() => {
+      if (this.typingTimers.get(telegramUserId) === interval) {
+        this.stopTyping(telegramUserId);
+      }
+    }, TelegramService.TYPING_TIMEOUT_MS);
+  }
+
+  /** Stop the "typing" indicator for a Telegram user */
+  private stopTyping(telegramUserId: string): void {
+    const timer = this.typingTimers.get(telegramUserId);
+    if (timer) {
+      clearInterval(timer);
+      this.typingTimers.delete(telegramUserId);
+    }
   }
 
   /** Cleanup all pending requests (used on verify failure) */

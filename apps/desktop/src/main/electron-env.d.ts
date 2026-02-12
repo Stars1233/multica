@@ -142,6 +142,10 @@ interface ElectronAPI {
   app: {
     getFlags: () => Promise<{ forceOnboarding: boolean }>
   }
+  appState: {
+    getOnboardingCompleted: () => Promise<boolean>
+    setOnboardingCompleted: (completed: boolean) => Promise<void>
+  }
   hub: {
     init: () => Promise<unknown>
     getStatus: () => Promise<HubStatus>

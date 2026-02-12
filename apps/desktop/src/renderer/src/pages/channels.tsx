@@ -9,7 +9,7 @@ import {
 import { Button } from '@multica/ui/components/ui/button'
 import { Input } from '@multica/ui/components/ui/input'
 import { Badge } from '@multica/ui/components/ui/badge'
-import { useChannels, type UseChannelsReturn } from '../hooks/use-channels'
+import { useChannelsStore } from '../stores/channels'
 
 /** Status badge color mapping */
 function statusVariant(status: string): 'default' | 'secondary' | 'destructive' | 'outline' {
@@ -21,8 +21,8 @@ function statusVariant(status: string): 'default' | 'secondary' | 'destructive' 
   }
 }
 
-function TelegramCard({ channels }: { channels: UseChannelsReturn }) {
-  const { states, config, saveToken, removeToken, startChannel, stopChannel } = channels
+function TelegramCard() {
+  const { states, config, saveToken, removeToken, startChannel, stopChannel } = useChannelsStore()
   const [token, setToken] = useState('')
   const [saving, setSaving] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
@@ -153,25 +153,30 @@ function TelegramCard({ channels }: { channels: UseChannelsReturn }) {
 }
 
 export default function ChannelsPage() {
-  const channels = useChannels()
-  const { loading, error } = channels
+  const { loading, error } = useChannelsStore()
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold">Channels</h2>
+    <div className="h-full overflow-auto">
+    <div className="container flex flex-col p-6">
+      {/* Page Header */}
+      <div className="mb-6">
+        <h1 className="text-lg font-medium">Channels</h1>
         <p className="text-sm text-muted-foreground">
-          Connect messaging platforms to your Agent.
+          Channels let you talk to your agent from other platforms like Telegram or Slack. Connect one to chat with your agent anywhere.
         </p>
       </div>
 
-      {loading ? (
-        <p className="text-sm text-muted-foreground">Loading...</p>
-      ) : error ? (
-        <p className="text-sm text-destructive">{error}</p>
-      ) : (
-        <TelegramCard channels={channels} />
-      )}
+      {/* Configuration Area */}
+      <div className="flex-1 min-h-0">
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        ) : error ? (
+          <p className="text-sm text-destructive">{error}</p>
+        ) : (
+          <TelegramCard />
+        )}
+      </div>
+    </div>
     </div>
   )
 }

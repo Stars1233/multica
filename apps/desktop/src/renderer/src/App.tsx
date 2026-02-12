@@ -1,5 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { createHashRouter, Navigate, RouterProvider } from 'react-router-dom'
+import { ThemeProvider } from './components/theme-provider'
+import { TooltipProvider } from '@multica/ui/components/ui/tooltip'
+import { Toaster } from './components/toaster'
 import Layout from './pages/layout'
 import HomePage from './pages/home'
 import ChatPage from './pages/chat'
@@ -7,30 +10,25 @@ import ToolsPage from './pages/tools'
 import SkillsPage from './pages/skills'
 import ChannelsPage from './pages/channels'
 import CronsPage from './pages/crons'
-import OnboardingLayout from './pages/onboarding/layout'
-import PermissionsStep from './pages/onboarding/permissions'
-import SetupStep from './pages/onboarding/setup'
-import TryItStep from './pages/onboarding/try-it'
-import ConnectStep from './pages/onboarding/connect'
+import OnboardingPage from './pages/onboarding'
 import { useOnboardingStore } from './stores/onboarding'
+import { useHubStore } from './stores/hub'
+import { useProviderStore } from './stores/provider'
+import { useChannelsStore } from './stores/channels'
+import { useSkillsStore } from './stores/skills'
+import { useToolsStore } from './stores/tools'
+import { useCronJobsStore } from './stores/cron-jobs'
 
 function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const completed = useOnboardingStore((s) => s.completed)
-  const forceOnboarding = useOnboardingStore((s) => s.forceOnboarding)
-  if (!completed || forceOnboarding) return <Navigate to="/onboarding" replace />
+  if (!completed) return <Navigate to="/onboarding" replace />
   return <>{children}</>
 }
 
 const router = createHashRouter([
   {
     path: '/onboarding',
-    element: <OnboardingLayout />,
-    children: [
-      { index: true, element: <PermissionsStep /> },
-      { path: 'setup', element: <SetupStep /> },
-      { path: 'connect', element: <ConnectStep /> },
-      { path: 'try-it', element: <TryItStep /> },
-    ],
+    element: <OnboardingPage />,
   },
   {
     path: '/',
@@ -54,9 +52,50 @@ const router = createHashRouter([
 ])
 
 export default function App() {
-  useEffect(() => {
-    useOnboardingStore.getState().initForceFlag()
-  }, [])
+  const [isHydrated, setIsHydrated] = useState(false)
+  const setCompleted = useOnboardingStore((s) => s.setCompleted)
 
-  return <RouterProvider router={router} />
+  useEffect(() => {
+    // Load onboarding state from file system
+    async function hydrateOnboardingState() {
+      try {
+        const completed = await window.electronAPI.appState.getOnboardingCompleted()
+        setCompleted(completed)
+      } catch (err) {
+        console.error('[App] Failed to load onboarding state:', err)
+        // Default to false if load fails
+        setCompleted(false)
+      } finally {
+        setIsHydrated(true)
+      }
+    }
+
+    hydrateOnboardingState()
+
+    // Initialize hub and prefetch global data at app startup
+    useHubStore.getState().init()
+    useProviderStore.getState().fetch()
+    useChannelsStore.getState().fetch()
+    useSkillsStore.getState().fetch()
+    useToolsStore.getState().fetch()
+    useCronJobsStore.getState().fetch()
+  }, [setCompleted])
+
+  // Show nothing while loading onboarding state to prevent flash
+  if (!isHydrated) {
+    return (
+      <ThemeProvider defaultTheme="system" storageKey="multica-theme">
+        <div className="h-dvh bg-background" />
+      </ThemeProvider>
+    )
+  }
+
+  return (
+    <ThemeProvider defaultTheme="system" storageKey="multica-theme">
+      <TooltipProvider>
+        <RouterProvider router={router} />
+        <Toaster position="bottom-right" />
+      </TooltipProvider>
+    </ThemeProvider>
+  )
 }

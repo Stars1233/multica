@@ -1,5 +1,4 @@
-import { HugeiconsIcon } from '@hugeicons/react'
-import { ArrowRight01Icon } from '@hugeicons/core-free-icons'
+import { ArrowRight } from 'lucide-react'
 
 interface SamplePromptProps {
   title: string
@@ -17,10 +16,7 @@ export function SamplePrompt({ title, prompt, onClick }: SamplePromptProps) {
         <p className="font-medium text-sm">{title}</p>
         <p className="text-xs text-muted-foreground truncate">{prompt}</p>
       </div>
-      <HugeiconsIcon
-        icon={ArrowRight01Icon}
-        className="size-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0"
-      />
+      <ArrowRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
     </button>
   )
 }

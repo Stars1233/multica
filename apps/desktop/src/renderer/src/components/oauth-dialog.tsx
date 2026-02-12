@@ -8,8 +8,7 @@ import {
   DialogDescription,
 } from '@multica/ui/components/ui/dialog'
 import { Button } from '@multica/ui/components/ui/button'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { Loading03Icon, CommandLineIcon, RefreshIcon, Tick02Icon } from '@hugeicons/core-free-icons'
+import { Loader2, Terminal, RefreshCw, Check } from 'lucide-react'
 
 interface OAuthDialogProps {
   open: boolean
@@ -82,7 +81,7 @@ export function OAuthDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <HugeiconsIcon icon={CommandLineIcon} className="size-5" />
+            <Terminal className="size-5" />
             Configure {providerName}
           </DialogTitle>
           <DialogDescription>
@@ -116,7 +115,7 @@ export function OAuthDialog({
 
           {success && (
             <div className="bg-green-500/10 text-green-600 dark:text-green-400 rounded-md p-3 text-sm flex items-center gap-2">
-              <HugeiconsIcon icon={Tick02Icon} className="size-4" />
+              <Check className="size-4" />
               <span>
                 Credentials imported successfully!
                 {expiresAt && ` (expires in ${formatExpiry(expiresAt)})`}
@@ -131,9 +130,9 @@ export function OAuthDialog({
           </Button>
           <Button onClick={handleImport} disabled={importing || success}>
             {importing ? (
-              <HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin mr-2" />
+              <Loader2 className="size-4 animate-spin mr-2" />
             ) : (
-              <HugeiconsIcon icon={RefreshIcon} className="size-4 mr-2" />
+              <RefreshCw className="size-4 mr-2" />
             )}
             Refresh
           </Button>

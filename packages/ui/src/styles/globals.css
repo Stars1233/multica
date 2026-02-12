@@ -1,3 +1,86 @@
+/**
+ * =============================================================================
+ * MULTICA DESIGN SYSTEM
+ * =============================================================================
+ *
+ * Design Philosophy:
+ * - Restrained & Professional: This is a work tool, not a consumer app
+ * - Clear Communication: UI should inform, not decorate
+ * - Trust Through Transparency: Users need to understand what the AI is doing
+ *
+ * Key Principles:
+ * 1. RESTRAINT over decoration — avoid flashy colors, excessive animations
+ * 2. CLARITY over cleverness — obvious > subtle, explicit > implicit
+ * 3. CONSISTENCY over novelty — use established patterns (Shadcn/UI)
+ * 4. DENSITY over sprawl — respect user's screen real estate
+ *
+ * =============================================================================
+ * TYPOGRAPHY
+ * =============================================================================
+ *
+ * Font Stack (loaded via @fontsource, works across Web + Desktop):
+ *
+ * | Font                      | Variable      | Usage                        |
+ * |---------------------------|---------------|------------------------------|
+ * | Geist Sans                | font-sans     | Primary UI text, body copy   |
+ * | Geist Mono                | font-mono     | Code, technical values       |
+ * | Playfair Display Variable | font-brand    | Brand name "Multica" only    |
+ *
+ * Why Geist?
+ * - Created by Vercel, optimized for UI/developer tools
+ * - Excellent legibility at small sizes (12-14px)
+ * - Neutral, professional appearance — not "AI-ish" or trendy
+ * - Variable font = smaller bundle, flexible weights
+ *
+ * Why Playfair Display for brand?
+ * - Contrast with Geist creates clear hierarchy
+ * - Serif adds warmth/personality to otherwise minimal UI
+ * - Used ONLY for "Multica" text — nowhere else
+ *
+ * =============================================================================
+ * COLOR SYSTEM
+ * =============================================================================
+ *
+ * Approach: Neutral grays + semantic colors only
+ *
+ * Base Palette (OKLCH for perceptual uniformity):
+ * - background/foreground: Near-black and near-white, minimal chroma
+ * - muted: Subtle gray for secondary elements
+ * - primary: Near-black (light mode), near-white (dark mode) — NOT a brand color
+ *
+ * Why no brand color?
+ * - Purple/blue "AI colors" feel generic and dated
+ * - Work tools should recede, not demand attention
+ * - Color is reserved for STATE (running/success/error), not decoration
+ *
+ * Semantic Colors:
+ * - destructive: Red — delete, danger, errors
+ * - tool-running: Blue — active/in-progress state
+ * - tool-success: Green — completed successfully
+ * - tool-error: Red/orange — failed state
+ *
+ * Dark Mode:
+ * - True dark (#0f0f10), not gray
+ * - Slightly elevated surfaces for cards/popovers
+ * - Borders use subtle transparency (oklch with alpha)
+ *
+ * =============================================================================
+ * COMPONENT LIBRARY
+ * =============================================================================
+ *
+ * Built on: Shadcn/UI (https://ui.shadcn.com)
+ * - Copy-paste components, not a dependency
+ * - Radix UI primitives for accessibility
+ * - Tailwind CSS v4 for styling
+ *
+ * Customizations:
+ * - Slightly smaller radius (0.625rem base)
+ * - Muted color accents (no vibrant primary)
+ * - Custom scrollbar styling
+ *
+ * =============================================================================
+ */
+
 @import "tailwindcss";
 @source "../../../apps/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
@@ -10,8 +93,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --font-brand: 'Playfair Display Variable', serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -51,6 +135,21 @@
 }
 
 :root {
+  /* =========================================================================
+   * FONTS — unified across Web (Next.js) and Desktop (Electron/Vite)
+   * Loaded via @fontsource packages in packages/ui/src/styles/fonts.ts
+   * ========================================================================= */
+  --font-sans: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --font-brand: 'Playfair Display Variable', serif;
+
+  /* =========================================================================
+   * COLORS — Light mode
+   * Using OKLCH for perceptual uniformity across the palette
+   * Hue ~286 (cool gray with slight purple undertone) for neutrals
+   * ========================================================================= */
+
+  /* Base: pure white bg, near-black text */
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
@@ -83,16 +182,24 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+  /* Scrollbar: subtle, non-distracting */
   --scrollbar-thumb: oklch(0.82 0.003 286);
   --scrollbar-thumb-hover: oklch(0.705 0.015 286.067);
   --scrollbar-track: transparent;
-  --tool-running: oklch(0.6 0.18 250);
-  --tool-success: oklch(0.72 0.12 145);
-  --tool-error: oklch(0.65 0.2 25);
+
+  /* Tool execution states — these ARE allowed to use color for clarity */
+  --tool-running: oklch(0.6 0.18 250);   /* Blue: active/in-progress */
+  --tool-success: oklch(0.72 0.12 145);  /* Green: completed */
+  --tool-error: oklch(0.65 0.2 25);      /* Red: failed */
 }
 
+/* =========================================================================
+ * COLORS — Dark mode
+ * True dark theme (not gray), elevated surfaces for depth
+ * ========================================================================= */
 .dark {
-  --background: oklch(0.141 0.005 285.823);
+  /* Base: near-black bg, near-white text */
+  --background: oklch(0.155 0.005 285.823);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);
   --card-foreground: oklch(0.985 0 0);
@@ -143,6 +250,19 @@
   color: var(--shiki-dark) !important;
 }
 
+/* KaTeX math: inherit text color for light/dark theme support */
+.katex {
+  color: inherit;
+  font-size: 1em;
+}
+
+.katex-display {
+  margin: 1em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5em 0;
+}
+
 /* Scroll fade hint utilities — mask content edges to hint at scrollable overflow */
 .mask-fade-y {
   mask-image: linear-gradient(to bottom, transparent 0%, black 32px, black calc(100% - 32px), transparent 100%);
@@ -188,4 +308,15 @@
 @keyframes glow-pulse {
   0%, 100% { box-shadow: 0 0 0 0 var(--tool-running); }
   50% { box-shadow: 0 0 0 3px oklch(0.6 0.2 250 / 0); }
+}
+
+/* Multica icon: entrance spin */
+@keyframes entrance-spin {
+  0% { transform: rotate(0deg); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: rotate(360deg); opacity: 1; }
+}
+
+.animate-entrance-spin {
+  animation: entrance-spin 0.6s ease-out forwards;
 }

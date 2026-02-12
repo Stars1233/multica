@@ -2,14 +2,13 @@ import { useState } from 'react'
 import { Button } from '@multica/ui/components/ui/button'
 import { Badge } from '@multica/ui/components/ui/badge'
 import { Switch } from '@multica/ui/components/ui/switch'
-import { HugeiconsIcon } from '@hugeicons/react'
 import {
-  RotateClockwiseIcon,
-  Loading03Icon,
-  CheckmarkCircle02Icon,
-  Cancel01Icon,
-} from '@hugeicons/core-free-icons'
-import type { SkillInfo, SkillSource } from '../hooks/use-skills'
+  RotateCw,
+  Loader2,
+  CheckCircle,
+  X,
+} from 'lucide-react'
+import type { SkillInfo, SkillSource } from '../stores/skills'
 
 // Source badge colors
 const SOURCE_COLORS: Record<SkillSource, string> = {
@@ -69,7 +68,7 @@ export function SkillList({
   if (loading && skills.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
-        <HugeiconsIcon icon={Loading03Icon} className="size-6 animate-spin text-muted-foreground" />
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
         <span className="ml-2 text-muted-foreground">Loading skills...</span>
       </div>
     )
@@ -89,10 +88,11 @@ export function SkillList({
           disabled={loading}
           className="gap-1.5"
         >
-          <HugeiconsIcon
-            icon={loading ? Loading03Icon : RotateClockwiseIcon}
-            className={`size-4 ${loading ? 'animate-spin' : ''}`}
-          />
+          {loading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <RotateCw className="size-4" />
+          )}
           Refresh
         </Button>
       </div>
@@ -175,10 +175,11 @@ export function SkillList({
                             : 'text-muted-foreground'
                         }`}
                       >
-                        <HugeiconsIcon
-                          icon={skill.enabled ? CheckmarkCircle02Icon : Cancel01Icon}
-                          className="size-4"
-                        />
+                        {skill.enabled ? (
+                          <CheckCircle className="size-4" />
+                        ) : (
+                          <X className="size-4" />
+                        )}
                         <span className="text-xs font-medium">
                           {skill.enabled ? 'Enabled' : 'Disabled'}
                         </span>
@@ -188,10 +189,7 @@ export function SkillList({
                     {/* Right: Toggle */}
                     <div className="flex items-center gap-2">
                       {isToggling && (
-                        <HugeiconsIcon
-                          icon={Loading03Icon}
-                          className="size-4 animate-spin text-muted-foreground"
-                        />
+                        <Loader2 className="size-4 animate-spin text-muted-foreground" />
                       )}
                       <Switch
                         checked={skill.enabled}

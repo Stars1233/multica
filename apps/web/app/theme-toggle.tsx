@@ -2,8 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { Button } from "@multica/ui/components/ui/button";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Sun01Icon, Moon01Icon } from "@hugeicons/core-free-icons";
+import { Sun, Moon } from "lucide-react";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -15,8 +14,8 @@ export function ThemeToggle() {
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       className="size-8 text-muted-foreground"
     >
-      <HugeiconsIcon icon={Sun01Icon} strokeWidth={1.5} className="size-4 dark:hidden" />
-      <HugeiconsIcon icon={Moon01Icon} strokeWidth={1.5} className="size-4 hidden dark:block" />
+      <Sun className="size-4 dark:hidden" />
+      <Moon className="size-4 hidden dark:block" />
     </Button>
   );
 }

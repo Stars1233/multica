@@ -1,42 +1,31 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@multica/ui/components/ui/card'
-import { useSkills } from '../hooks/use-skills'
+import { useSkillsStore } from '../stores/skills'
 import { SkillList } from '../components/skill-list'
 
 export default function SkillsPage() {
-  const {
-    skills,
-    loading,
-    error,
-    toggleSkill,
-    refresh,
-  } = useSkills()
+  const { skills, loading, error, toggleSkill, refresh } = useSkillsStore()
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <Card>
-        <CardHeader>
-          <CardTitle>Skills</CardTitle>
-          <CardDescription>
-            Manage agent skills. Skills provide specialized capabilities like Git integration,
-            code review, and file manipulation. Toggle skills on/off to control agent behavior.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SkillList
-            skills={skills}
-            loading={loading}
-            error={error}
-            onToggleSkill={toggleSkill}
-            onRefresh={refresh}
-          />
-        </CardContent>
-      </Card>
+    <div className="h-full overflow-auto">
+    <div className="container flex flex-col p-6">
+      {/* Page Header */}
+      <div className="mb-6">
+        <h1 className="text-lg font-medium">Skills</h1>
+        <p className="text-sm text-muted-foreground">
+          Skills are modular capabilities that expand what your agent can do. You can also ask your agent to create new skills for you.
+        </p>
+      </div>
+
+      {/* Configuration Area */}
+      <div className="flex-1 min-h-0">
+        <SkillList
+          skills={skills}
+          loading={loading}
+          error={error}
+          onToggleSkill={toggleSkill}
+          onRefresh={refresh}
+        />
+      </div>
+    </div>
     </div>
   )
 }

@@ -13,14 +13,12 @@
     "@multica/sdk": "workspace:*",
     "@multica/store": "workspace:*",
     "@multica/ui": "workspace:*",
-    "uuid": "catalog:",
-    "zustand": "catalog:",
-    "@hugeicons/core-free-icons": "catalog:",
-    "@hugeicons/react": "catalog:",
     "next": "16.1.6",
     "next-themes": "^0.4.6",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "uuid": "catalog:",
+    "zustand": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

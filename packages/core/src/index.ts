@@ -11,6 +11,7 @@ export * from './channels/index.js'
 export * from './cron/index.js'
 export * from './heartbeat/index.js'
 export * from './media/index.js'
+export * from './app-state.js'
 
 // Client exports (selective to avoid conflicts with agent/events)
 export {

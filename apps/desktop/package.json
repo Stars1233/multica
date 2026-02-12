@@ -8,19 +8,19 @@
   "type": "module",
   "scripts": {
     "dev": "electron-vite dev",
+    "dev:onboarding": "electron-vite dev -- --force-onboarding",
     "build": "electron-vite build && electron-builder",
     "preview": "electron-vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
-    "@hugeicons/core-free-icons": "catalog:",
-    "@hugeicons/react": "catalog:",
     "@multica/core": "workspace:*",
     "@multica/hooks": "workspace:*",
     "@multica/sdk": "workspace:*",
     "@multica/store": "workspace:*",
     "@multica/ui": "workspace:*",
-    "electron-updater": "^6.7.3",
+"electron-updater": "^6.7.3",
+    "lucide-react": "^0.563.0",
     "qrcode.react": "^4.2.0",
     "react": "catalog:",
     "react-dom": "catalog:",

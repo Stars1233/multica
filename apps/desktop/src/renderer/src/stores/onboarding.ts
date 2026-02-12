@@ -1,5 +1,4 @@
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
 
 interface AcknowledgementsState {
   fileSystem: boolean
@@ -9,57 +8,60 @@ interface AcknowledgementsState {
 }
 
 interface OnboardingStore {
+  // Persisted state (loaded from file system via IPC)
   completed: boolean
-  forceOnboarding: boolean
+  // Transient state (reset on page reload)
+  currentStep: number
   acknowledgements: AcknowledgementsState
   allAcknowledged: boolean
   providerConfigured: boolean
   clientConnected: boolean
+  // Actions
+  setCompleted: (completed: boolean) => void
+  setStep: (step: number) => void
+  nextStep: () => void
+  prevStep: () => void
   setAcknowledgement: (key: keyof AcknowledgementsState, value: boolean) => void
   setProviderConfigured: (configured: boolean) => void
   setClientConnected: (connected: boolean) => void
-  completeOnboarding: () => void
-  initForceFlag: () => Promise<void>
+  completeOnboarding: () => Promise<void>
 }
 
-export const useOnboardingStore = create<OnboardingStore>()(
-  persist(
-    (set, get) => ({
-      completed: false,
-      forceOnboarding: false,
+export const useOnboardingStore = create<OnboardingStore>()((set, get) => ({
+  // Initial state - will be hydrated from file system on app start
+  completed: false,
+  currentStep: 0,
 
-      acknowledgements: {
-        fileSystem: false,
-        shellExecution: false,
-        llmRequests: false,
-        localStorage: false,
-      },
-      allAcknowledged: false,
-      providerConfigured: false,
-      clientConnected: false,
+  acknowledgements: {
+    fileSystem: false,
+    shellExecution: false,
+    llmRequests: false,
+    localStorage: false,
+  },
+  allAcknowledged: false,
+  providerConfigured: false,
+  clientConnected: false,
 
-      setAcknowledgement: (key, value) => {
-        const acknowledgements = { ...get().acknowledgements, [key]: value }
-        const allAcknowledged = Object.values(acknowledgements).every(Boolean)
-        set({ acknowledgements, allAcknowledged })
-      },
+  setCompleted: (completed) => set({ completed }),
 
-      setProviderConfigured: (configured) => set({ providerConfigured: configured }),
+  setStep: (step) => set({ currentStep: step }),
+  nextStep: () => set({ currentStep: Math.min(get().currentStep + 1, 4) }),
+  prevStep: () => set({ currentStep: Math.max(get().currentStep - 1, 0) }),
 
-      setClientConnected: (connected) => set({ clientConnected: connected }),
+  setAcknowledgement: (key, value) => {
+    const acknowledgements = { ...get().acknowledgements, [key]: value }
+    const allAcknowledged = Object.values(acknowledgements).every(Boolean)
+    set({ acknowledgements, allAcknowledged })
+  },
 
-      completeOnboarding: () => set({ completed: true, forceOnboarding: false }),
+  setProviderConfigured: (configured) => set({ providerConfigured: configured }),
 
-      initForceFlag: async () => {
-        const flags = await window.electronAPI.app.getFlags()
-        if (flags.forceOnboarding) {
-          set({ forceOnboarding: true })
-        }
-      },
-    }),
-    {
-      name: 'multica-onboarding',
-      partialize: (state) => ({ completed: state.completed }),
-    }
-  )
-)
+  setClientConnected: (connected) => set({ clientConnected: connected }),
+
+  completeOnboarding: async () => {
+    // Persist to file system via IPC
+    await window.electronAPI.appState.setOnboardingCompleted(true)
+    // Update local state
+    set({ completed: true, currentStep: 0 })
+  },
+}))

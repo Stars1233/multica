@@ -3,14 +3,13 @@
  * Shows when a new version is available and allows user to download/install
  */
 import { useState, useEffect } from 'react'
-import { HugeiconsIcon } from '@hugeicons/react'
 import {
-  Download04Icon,
-  Loading03Icon,
-  CheckmarkCircle02Icon,
-  AlertCircleIcon,
-  Cancel01Icon,
-} from '@hugeicons/core-free-icons'
+  Download,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  X,
+} from 'lucide-react'
 import { Button } from '@multica/ui/components/ui/button'
 
 interface UpdateInfo {
@@ -77,13 +76,13 @@ export function UpdateNotification(): React.JSX.Element | null {
           className={`flex h-8 w-8 items-center justify-center rounded-full ${isError ? 'bg-destructive/10' : 'bg-primary/10'}`}
         >
           {isError ? (
-            <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 text-destructive" />
+            <AlertCircle className="h-4 w-4 text-destructive" />
           ) : updateStatus.status === 'downloaded' ? (
-            <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-4 w-4 text-primary" />
+            <CheckCircle className="h-4 w-4 text-primary" />
           ) : updateStatus.status === 'downloading' ? (
-            <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 text-primary animate-spin" />
+            <Loader2 className="h-4 w-4 text-primary animate-spin" />
           ) : (
-            <HugeiconsIcon icon={Download04Icon} className="h-4 w-4 text-primary" />
+            <Download className="h-4 w-4 text-primary" />
           )}
         </div>
 
@@ -134,7 +133,7 @@ export function UpdateNotification(): React.JSX.Element | null {
           )}
           {updateStatus.status !== 'downloading' && (
             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleDismiss}>
-              <HugeiconsIcon icon={Cancel01Icon} className="h-4 w-4" />
+              <X className="h-4 w-4" />
             </Button>
           )}
         </div>

@@ -1,12 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { Button } from '@multica/ui/components/ui/button'
-import { HugeiconsIcon } from '@hugeicons/react'
-import {
-  RefreshIcon,
-  CheckmarkCircle02Icon,
-  Copy01Icon,
-} from '@hugeicons/core-free-icons'
+import { RefreshCw, CheckCircle, Copy } from 'lucide-react'
 
 export interface QRCodeData {
   type: 'multica-connect'
@@ -177,7 +172,7 @@ export function ConnectionQRCode({
         {isExpired && (
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-xl flex items-center justify-center">
             <Button variant="outline" size="sm" onClick={handleRefresh}>
-              <HugeiconsIcon icon={RefreshIcon} className="size-4 mr-2" />
+              <RefreshCw className="size-4 mr-2" />
               Refresh
             </Button>
           </div>
@@ -185,13 +180,9 @@ export function ConnectionQRCode({
       </div>
 
       {/* Info section */}
-      <div className="mt-6 text-center space-y-3">
-        <p className="text-sm text-muted-foreground">
-          Scan with your phone to connect
-        </p>
-
+      <div className="mt-4 space-y-2">
         {/* Expiry timer */}
-        <div className="flex items-center gap-3 justify-center">
+        <div className="flex items-center gap-2">
           <span
             className={`text-xs font-mono ${
               isExpiringSoon
@@ -203,32 +194,21 @@ export function ConnectionQRCode({
           >
             {isExpired ? 'Expired' : `Expires in ${formatTime(remainingSeconds)}`}
           </span>
-          {!isExpired && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-xs gap-1"
-              onClick={handleRefresh}
-            >
-              <HugeiconsIcon icon={RefreshIcon} className="size-3" />
-              Refresh
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={isExpired ? handleRefresh : handleCopyLink}
+          >
+            {isExpired ? (
+              <RefreshCw className="size-3.5 mr-1" />
+            ) : copied ? (
+              <CheckCircle className="size-3.5 mr-1" />
+            ) : (
+              <Copy className="size-3.5 mr-1" />
+            )}
+            {isExpired ? 'Refresh' : (copied ? 'Copied!' : 'Copy Link')}
+          </Button>
         </div>
-
-        {/* Copy link button */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="text-xs gap-1.5"
-          onClick={handleCopyLink}
-        >
-          <HugeiconsIcon
-            icon={copied ? CheckmarkCircle02Icon : Copy01Icon}
-            className="size-3.5"
-          />
-          {copied ? 'Copied!' : 'Copy Link'}
-        </Button>
       </div>
     </div>
   )

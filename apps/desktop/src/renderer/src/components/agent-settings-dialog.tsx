@@ -11,8 +11,7 @@ import { Button } from '@multica/ui/components/ui/button'
 import { Input } from '@multica/ui/components/ui/input'
 import { Textarea } from '@multica/ui/components/ui/textarea'
 import { Label } from '@multica/ui/components/ui/label'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { Loading03Icon } from '@hugeicons/core-free-icons'
+import { Loader2 } from 'lucide-react'
 
 interface AgentSettingsDialogProps {
   open: boolean
@@ -72,7 +71,7 @@ export function AgentSettingsDialog({ open, onOpenChange }: AgentSettingsDialogP
 
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <HugeiconsIcon icon={Loading03Icon} className="size-6 animate-spin text-muted-foreground" />
+            <Loader2 className="size-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
           <div className="space-y-4">
@@ -109,7 +108,7 @@ export function AgentSettingsDialog({ open, onOpenChange }: AgentSettingsDialogP
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={loading || saving}>
-            {saving && <HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin mr-2" />}
+            {saving && <Loader2 className="size-4 animate-spin mr-2" />}
             Save
           </Button>
         </DialogFooter>

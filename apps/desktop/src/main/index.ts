@@ -48,6 +48,7 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { registerAllIpcHandlers, initializeApp, cleanupAll, setupDeviceConfirmation } from './ipc/index.js'
+import { appStateManager } from '@multica/core'
 import { createUpdater, AutoUpdater } from './updater/index.js'
 
 // CJS output will have __dirname natively, but TypeScript source needs this for type checking
@@ -74,8 +75,10 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1200,
     height: 800,
+    minWidth: 500,
+    minHeight: 520,
     titleBarStyle: 'hiddenInset',
-    trafficLightPosition: { x: 16, y: 12 },
+    trafficLightPosition: { x: 16, y: 17 },  // Vertically centered in 48px header
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.cjs'),
       // Enable node integration for IPC
@@ -115,6 +118,13 @@ app.on('before-quit', () => {
 })
 
 app.whenReady().then(async () => {
+  // Reset onboarding if --force-onboarding flag is passed (for development testing)
+  if (forceOnboarding) {
+    console.log('[dev] Resetting onboarding state...')
+    appStateManager.resetOnboarding()
+    console.log('[dev] Onboarding state reset')
+  }
+
   // App-level IPC handlers
   ipcMain.handle('app:getFlags', () => ({ forceOnboarding }))
 

@@ -1,42 +1,124 @@
 # Super Multica Product Capabilities
 
-> This document is the single source of truth for all product capabilities. It describes **what exists**, not how to design or how to use it. All subsequent documents (user journeys, UI design, copywriting, design systems) should reference this document.
+> This document is the single source of truth for all product capabilities. It describes **what exists** and **what value it provides to users**. All subsequent documents (user journeys, UI design, copywriting, design systems) should reference this document.
 
 ---
 
 ## 1. Product Definition
 
-**Super Multica** is a distributed AI Agent framework. Users can create, customize, and deploy AI Agents with persistent memory, fine-grained capability control, and multi-provider LLM support. Agents run locally on the user's machine; remote access is optional.
+**Super Multica** is your personal AI Agent that runs entirely on your machine. It can read files, execute commands, search the web, and remember everything you tell it—all while keeping your data local and under your control.
+
+> **Core narrative**: "A personal AI Agent running on your computer. Your data, your API keys, your control."
+
+**Product Focus (Current Version)**:
+- **Primary**: Personal use — one user, one agent, local-first
+- **Secondary**: Remote access via phone/web (optional, for power users)
 
 **Core architecture**:
 
 ```
-Desktop App (standalone, recommended)
-  └─ Hub (embedded, manages agents)
+Desktop App (standalone, primary)
+  └─ Hub (embedded, manages agent)
      └─ Agent Engine (LLM execution, sessions, skills, tools)
-        └─ (Optional) Gateway connection → remote clients (web/mobile)
+        └─ (Optional) Gateway → remote access (web/mobile)
 ```
 
 ---
 
-## 2. User Roles
+## 2. Core Value Propositions
 
-| Role | Definition | Platform | Authority |
-|------|-----------|----------|-----------|
-| **Owner** | Runs the Desktop app, owns Hub and Agents | Desktop (Electron) | Full: create/delete agents, approve devices, configure providers, manage profiles/skills |
-| **Collaborator** | Connects to Owner's Agent via Gateway | Web / Mobile | Limited: chat with agent, view message history. No agent management. |
+> **Design Reference**: This section summarizes key value propositions for UI/UX design, copywriting, and user communication decisions. Use this as a quick reference when deciding what to emphasize in interfaces and messaging.
 
-There is no formal role/permission system. The Owner is implicit admin by virtue of running the Hub.
+### 2.1 Primary Differentiators
+
+These are the core values that distinguish Super Multica. Communicate them in order of priority.
+
+**Tier 1 — Core Identity (Always communicate)**
+
+| Value | User-Facing Message | Technical Basis |
+|-------|---------------------|-----------------|
+| **Personal AI Agent** | "Your own AI assistant, running on your machine" | Desktop-first, embedded Hub, single-user focus |
+| **Capable** | "Read files, run commands, search the web, remember things" | 12 built-in tools across file/runtime/web/memory |
+| **Local-First** | "Your data never leaves your computer" | All data stored in `~/.super-multica/`, no cloud dependency |
+
+**Tier 2 — Trust & Control (Reinforce throughout)**
+
+| Value | User-Facing Message | Technical Basis |
+|-------|---------------------|-----------------|
+| **Your Keys, Your Control** | "Use your own API keys, switch models anytime" | 10 LLM providers, user-owned credentials |
+| **Safe Execution** | "Every command requires your approval" | 4-layer security assessment + approval protocol |
+| **Persistent Memory** | "Your agent remembers what you tell it" | Profile system + Memory tools |
+
+**Tier 3 — Power Features (Available, not prominent)**
+
+| Value | User-Facing Message | Technical Basis |
+|-------|---------------------|-----------------|
+| **Extensible Skills** | "Teach your agent new abilities" | Modular skill system with hot-reload |
+| **Remote Access** | "Access from phone or web when needed" | Gateway + Device pairing (optional) |
+
+### 2.2 Trust-Building Points
+
+These messages should be reinforced throughout the user journey, especially during onboarding and when requesting sensitive permissions.
+
+| Context | What User Worries About | How We Address It |
+|---------|------------------------|-------------------|
+| First launch | "Will this access my files?" | Explicit permission acknowledgment with clear scope |
+| API key entry | "Where is my key stored?" | "Stored locally in `~/.super-multica/credentials.json5`. Never sent to our servers." |
+| Command execution | "What if it runs something dangerous?" | 4-layer safety check + mandatory user approval + allow-once/allow-always options |
+| Memory storage | "What does it remember about me?" | User-controlled, file-based, inspectable at `~/.super-multica/agent-profiles/` |
+| Remote access | "Who can access my agent?" | Device whitelist with explicit approval, one-time tokens, 30s expiry |
+
+### 2.3 Feature Priority Matrix
+
+Use this when designing interfaces to determine information hierarchy and feature prominence.
+
+| Priority | Features | Where to Expose | Design Guidance |
+|----------|----------|-----------------|-----------------|
+| **P0 - Always Visible** | Chat, Agent status (running/idle), Approval dialogs | Main UI, always accessible | Cannot be hidden or collapsed |
+| **P1 - Dashboard** | Current provider/model, Available tools, Session info | Home/Dashboard, 1 click away | Show what agent can do |
+| **P2 - Configuration** | Provider selection, Profile/Skills management, Tool policy | Settings or sidebar sections | Available but not prominent |
+| **P3 - Power Features** | Remote access (QR/Gateway), Device management, Memory inspection | Settings → Advanced | Hidden from casual users |
+| **P4 - Developer** | CLI commands, Session JSONL format, Gateway config | Documentation only | Not exposed in UI |
+
+**Key Change**: QR code and remote access moved from P0 to P3. Dashboard (agent capabilities) moved up to P1.
+
+### 2.4 Messaging Tone Guidelines
+
+| Situation | Tone | Example |
+|-----------|------|---------|
+| Explaining privacy | Reassuring, factual | "All data stays on your machine. We can't access it even if we wanted to." |
+| Requesting permission | Clear, non-alarming | "Multica needs to read files to help you. You control which files." |
+| Command approval | Cautious but not scary | "Review this command before running." (not "DANGER: This could harm your system!") |
+| Error states | Helpful, actionable | "API key invalid. Check your key in Settings → Providers." |
+| Success states | Brief, confident | "Connected." (not "Successfully connected to the server!") |
 
 ---
 
-## 3. Functional Modules
+## 3. User Model
 
-### 3.1 Agent Engine
+**Current Version**: Single-user, personal agent.
 
-The core execution unit. An Agent receives user messages, calls an LLM, executes tools, and returns responses.
+| Role | Definition | Platform |
+|------|-----------|----------|
+| **You** | The person running the Desktop app | Desktop (Electron) |
 
-#### 3.1.1 Agent Lifecycle
+You own your agent. You control what it can do, which LLM it uses, and what it remembers.
+
+**Future Consideration**: Remote access allows you to chat with your agent from other devices (phone, web). This is an optional power feature, not the primary use case.
+
+**User-Facing Value**: "Your personal AI agent. Runs on your machine, works for you."
+
+---
+
+## 4. Functional Modules
+
+### 4.1 Agent Engine
+
+> **User-Facing Value**: "Your personal AI that lives on your computer. It can read your files, run commands, search the web, and remember everything you tell it."
+
+The core execution unit. Your Agent receives messages, calls an LLM, executes tools, and returns responses.
+
+#### 4.1.1 Agent Lifecycle
 
 | State | Description |
 |-------|-------------|
@@ -47,7 +129,7 @@ The core execution unit. An Agent receives user messages, calls an LLM, executes
 
 Each `write()` call is queued. Messages are processed sequentially (one at a time).
 
-#### 3.1.2 Agent Execution Loop
+#### 4.1.2 Agent Execution Loop
 
 1. Receive user message via `write(content)`
 2. Resolve API credentials (with auth profile rotation)
@@ -58,7 +140,7 @@ Each `write()` call is queued. Messages are processed sequentially (one at a tim
 7. Check context window utilization → compact if needed
 8. Emit events to subscribers (streaming to UI)
 
-#### 3.1.3 Auth Profile Rotation
+#### 4.1.3 Auth Profile Rotation
 
 When an API call fails, the system classifies the error and may rotate to a different API key:
 
@@ -75,7 +157,7 @@ Failed profiles enter cooldown. Rotation continues until success or all profiles
 
 Tracking file: `~/.super-multica/.auth-profiles/usage-stats.json`
 
-#### 3.1.4 Subagent Spawning
+#### 4.1.4 Subagent Spawning
 
 Agents can spawn child agents via the `sessions_spawn` tool:
 
@@ -85,7 +167,7 @@ Agents can spawn child agents via the `sessions_spawn` tool:
 - Parameters: task (required), label, model override, cleanup policy (`delete` or `keep`), timeout
 - Results announced back to parent automatically
 
-#### 3.1.5 Agent Configuration Options
+#### 4.1.5 Agent Configuration Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -99,7 +181,9 @@ Agents can spawn child agents via the `sessions_spawn` tool:
 
 ---
 
-### 3.2 LLM Providers
+### 4.2 LLM Providers
+
+> **User-Facing Value**: "Use your own API keys. Switch between Claude, GPT, Gemini, and more. Your keys, your choice."
 
 Ten providers supported. Two auth methods: OAuth (CLI login) and API Key.
 
@@ -126,11 +210,13 @@ Ten providers supported. Two auth methods: OAuth (CLI login) and API Key.
 
 ---
 
-### 3.3 Tools
+### 4.3 Tools
+
+> **User-Facing Value**: "Your agent can read files, write code, run commands, search the web, and remember things for you."
 
 Tools are capabilities the Agent can invoke during execution.
 
-#### 3.3.1 Built-in Tools
+#### 4.3.1 Built-in Tools
 
 | Tool | Category | Description |
 |------|----------|-------------|
@@ -148,7 +234,7 @@ Tools are capabilities the Agent can invoke during execution.
 | `memory_delete` | Memory | Delete memory entries |
 | `sessions_spawn` | Subagent | Spawn a child agent for a specific task |
 
-#### 3.3.2 Tool Groups (shortcuts for policy)
+#### 4.3.2 Tool Groups (shortcuts for policy)
 
 | Group | Tools Included |
 |-------|---------------|
@@ -159,7 +245,7 @@ Tools are capabilities the Agent can invoke during execution.
 | `group:subagent` | sessions_spawn |
 | `group:core` | read, write, edit, glob, exec, process, web_search, web_fetch |
 
-#### 3.3.3 Tool Policy System (3 layers)
+#### 4.3.3 Tool Policy System (3 layers)
 
 | Layer | Scope | Description |
 |-------|-------|-------------|
@@ -169,13 +255,63 @@ Tools are capabilities the Agent can invoke during execution.
 
 **Priority**: Deny always overrides Allow. Empty allow list = deny all.
 
-#### 3.3.4 Exec Tool Details
+#### 4.3.4 Exec Tool Details
 
 - Default yield timeout: 10,000ms (auto-backgrounds if not complete)
 - Supports `timeoutMs` for hard kill (SIGTERM)
 - Output includes: stdout+stderr, exitCode, truncation flag, process ID if backgrounded
 
-#### 3.3.5 Web Search Details
+#### 4.3.5 Exec Approval Protocol
+
+> **User-Facing Value**: "Every shell command requires your explicit approval. You're always in control."
+
+The exec tool implements a 4-layer security assessment before any command execution:
+
+| Layer | Check | Examples | Result if Failed |
+|-------|-------|----------|------------------|
+| 1. Whitelist | Glob pattern match against allowed commands | `git *`, `npm install` | Skip to next layer |
+| 2. Shell Syntax | Dangerous shell constructs detection | `$(...)`, backticks, pipes to dangerous commands | `dangerous` |
+| 3. Safe Binaries | ~40 known-safe read-only commands | `ls`, `cat`, `grep`, `git status` | `safe` if matched |
+| 4. Danger Patterns | 25+ regex patterns for risky operations | `rm -rf`, `chmod 777`, `curl | sh` | `dangerous` if matched |
+
+**Risk Levels**:
+
+| Level | Meaning | User Action Required |
+|-------|---------|---------------------|
+| `safe` | Read-only or whitelisted command | Auto-approved (configurable) |
+| `needs-review` | Unknown command, not obviously dangerous | User must approve |
+| `dangerous` | Matches danger pattern or shell injection risk | User must approve with warning |
+
+**User Approval Options**:
+
+| Option | Effect | Persistence |
+|--------|--------|-------------|
+| Allow Once | Execute this command only | This execution only |
+| Allow Always | Add to session whitelist | Until session ends |
+| Deny | Block execution | This execution only |
+
+**Approval Flow**:
+
+```
+Agent requests exec("npm install express")
+    ↓
+4-layer security check → "needs-review"
+    ↓
+Desktop shows approval dialog:
+  "The agent wants to run: npm install express"
+  [Allow Once] [Allow Always] [Deny]
+    ↓
+User clicks "Allow Once"
+    ↓
+Command executes, result returned to agent
+```
+
+**Design Guidance**: This is a core trust-building feature. The approval dialog should be:
+- Clear and non-alarming for safe commands
+- Appropriately cautious for dangerous commands
+- Never auto-dismissed or timed out (user must act)
+
+#### 4.3.6 Web Search Details
 
 - Brave provider: up to 10 results, country filtering, freshness filters (`pd`/`pw`/`pm`/`py`)
 - Perplexity provider: AI-synthesized answers
@@ -183,11 +319,13 @@ Tools are capabilities the Agent can invoke during execution.
 
 ---
 
-### 3.4 Profile System
+### 4.4 Profile System
+
+> **User-Facing Value**: "Give your agent a personality. Define how it talks, what it knows, and how it works."
 
 A Profile defines an Agent's identity, personality, knowledge, and configuration.
 
-#### 3.4.1 Profile File Structure
+#### 4.4.1 Profile File Structure
 
 ```
 ~/.super-multica/agent-profiles/{profileId}/
@@ -204,7 +342,7 @@ A Profile defines an Agent's identity, personality, knowledge, and configuration
         └── SKILL.md
 ```
 
-#### 3.4.2 Profile Config (config.json)
+#### 4.4.2 Profile Config (config.json)
 
 ```json
 {
@@ -220,7 +358,7 @@ A Profile defines an Agent's identity, personality, knowledge, and configuration
 }
 ```
 
-#### 3.4.3 Profile Operations
+#### 4.4.3 Profile Operations
 
 | Operation | CLI | Desktop |
 |-----------|-----|---------|
@@ -233,7 +371,7 @@ A Profile defines an Agent's identity, personality, knowledge, and configuration
 
 **Profile ID rules**: alphanumeric, hyphens, underscores only.
 
-#### 3.4.4 System Prompt Composition
+#### 4.4.4 System Prompt Composition
 
 The system prompt is built dynamically from profile files:
 
@@ -253,11 +391,13 @@ The system prompt is built dynamically from profile files:
 
 ---
 
-### 3.5 Memory System
+### 4.5 Memory System
+
+> **User-Facing Value**: "Your agent remembers what you tell it. Preferences, facts, context—it's all there next time."
 
 Agents can persistently store and recall information across sessions.
 
-#### 3.5.1 Storage
+#### 4.5.1 Storage
 
 - Location: `~/.super-multica/agent-profiles/{profileId}/memory/`
 - Format: One JSON file per key
@@ -265,7 +405,7 @@ Agents can persistently store and recall information across sessions.
 - Dots in keys are escaped as `__DOT__` in filenames
 - Max value size: 1MB
 
-#### 3.5.2 Entry Format
+#### 4.5.2 Entry Format
 
 ```json
 {
@@ -276,7 +416,7 @@ Agents can persistently store and recall information across sessions.
 }
 ```
 
-#### 3.5.3 Memory Tools
+#### 4.5.3 Memory Tools
 
 | Tool | Input | Output |
 |------|-------|--------|
@@ -289,11 +429,13 @@ Agents can persistently store and recall information across sessions.
 
 ---
 
-### 3.6 Skills System
+### 4.6 Skills System
+
+> **User-Facing Value**: "Teach your agent new tricks. Install skills for Git, code review, and more."
 
 Skills are modular, self-contained capabilities defined via `SKILL.md` files. They extend what an Agent can do.
 
-#### 3.6.1 Skill File Format (SKILL.md)
+#### 4.6.1 Skill File Format (SKILL.md)
 
 ```yaml
 ---
@@ -314,7 +456,7 @@ metadata:
 # Full markdown instructions follow...
 ```
 
-#### 3.6.2 Skill Sources & Precedence
+#### 4.6.2 Skill Sources & Precedence
 
 | Source | Location | Precedence |
 |--------|----------|-----------|
@@ -324,7 +466,7 @@ metadata:
 
 Profile skills with the same ID completely replace global/bundled versions.
 
-#### 3.6.3 Bundled Skills
+#### 4.6.3 Bundled Skills
 
 | Skill | ID | Description | Requirements |
 |-------|----|-------------|-------------|
@@ -333,7 +475,7 @@ Profile skills with the same ID completely replace global/bundled versions.
 | Profile Setup | `profile-setup` | Interactive wizard to personalize agent profile | None |
 | Skill Creator | `skill-creator` | Create, edit, manage custom skills | None (always eligible) |
 
-#### 3.6.4 Eligibility Check Sequence
+#### 4.6.4 Eligibility Check Sequence
 
 1. Explicit disable in config → ineligible
 2. Bundled + not in allowlist → ineligible
@@ -347,13 +489,13 @@ Profile skills with the same ID completely replace global/bundled versions.
 
 Returns human-readable failure reasons (e.g., "Required binary not found: git").
 
-#### 3.6.5 Skill Invocation
+#### 4.6.5 Skill Invocation
 
 - **User invocation**: `/skillname args` in interactive CLI
 - **Model invocation**: Agent reads skill instructions from system prompt and follows them
 - **Hot reload**: File watcher detects SKILL.md changes, reloads automatically (250ms debounce)
 
-#### 3.6.6 Skill Installation
+#### 4.6.6 Skill Installation
 
 ```bash
 multica skills add owner/repo              # Clone entire repository
@@ -364,18 +506,20 @@ multica skills add owner/repo -p my-agent  # Install to profile
 
 ---
 
-### 3.7 Session Management
+### 4.7 Session Management
+
+> **User-Facing Value**: "Pick up where you left off. Your conversation history is always saved."
 
 Sessions persist conversation history across interactions.
 
-#### 3.7.1 Session Storage
+#### 4.7.1 Session Storage
 
 - Location: `~/.super-multica/sessions/{sessionId}/session.jsonl`
 - Format: JSON Lines (one JSON object per line)
 - Session IDs: UUIDv7 (time-ordered)
 - Each line is either a message entry, meta entry, or compaction entry
 
-#### 3.7.2 Message Format
+#### 4.7.2 Message Format
 
 Messages follow the LLM API format:
 
@@ -385,13 +529,13 @@ Messages follow the LLM API format:
 {"type": "message", "role": "user", "content": [{"type": "tool_result", "tool_use_id": "...", "content": "file contents"}]}
 ```
 
-#### 3.7.3 Session Metadata
+#### 4.7.3 Session Metadata
 
 ```json
 {"type": "meta", "provider": "anthropic", "model": "claude-sonnet-4-5", "reasoningMode": "off", "contextWindowTokens": 200000}
 ```
 
-#### 3.7.4 Context Window Management
+#### 4.7.4 Context Window Management
 
 | Parameter | Value | Description |
 |-----------|-------|-------------|
@@ -404,7 +548,7 @@ Messages follow the LLM API format:
 | Min keep messages | 10 | Never remove below this |
 | Reserve tokens | 1,024 | Reserved for response generation |
 
-#### 3.7.5 Compaction Modes
+#### 4.7.5 Compaction Modes
 
 | Mode | Strategy | Speed | Quality |
 |------|----------|-------|---------|
@@ -412,7 +556,7 @@ Messages follow the LLM API format:
 | `count` | Remove oldest when count > 80, keep last 60 | Fastest | Adequate |
 | `summary` | LLM generates incremental summary of removed messages | Slow (API call) | Best (preserves meaning) |
 
-#### 3.7.6 Session Operations
+#### 4.7.6 Session Operations
 
 | Operation | CLI Command |
 |-----------|-------------|
@@ -423,11 +567,11 @@ Messages follow the LLM API format:
 
 ---
 
-### 3.8 Hub
+### 4.8 Hub
 
-The Hub is the central coordinator. It manages agent lifecycle, routes messages, and handles device verification.
+The Hub manages your agent. It runs embedded in the Desktop app—you don't need to think about it.
 
-#### 3.8.1 Responsibilities
+#### 4.8.1 Responsibilities
 
 - Create, list, restore, close agents
 - Persist agent metadata to disk (`~/.super-multica/agents/agents.json`)
@@ -435,7 +579,7 @@ The Hub is the central coordinator. It manages agent lifecycle, routes messages,
 - Handle device verification and whitelisting
 - Process RPC requests from connected clients
 
-#### 3.8.2 Hub RPC Methods
+#### 4.8.2 Hub RPC Methods
 
 | Method | Description | Error Codes |
 |--------|-------------|-------------|
@@ -447,27 +591,29 @@ The Hub is the central coordinator. It manages agent lifecycle, routes messages,
 | `deleteAgent` | Delete agent | - |
 | `updateGateway` | Update Gateway connection | - |
 
-#### 3.8.3 Hub Singleton
+#### 4.8.3 Hub Singleton
 
 One Hub per ecosystem. In Desktop mode, it's embedded in the Electron main process. It generates a persistent Hub ID stored at `~/.super-multica/hub-id`.
 
 ---
 
-### 3.9 Gateway
+### 4.9 Gateway
 
-NestJS WebSocket server that enables remote client access to the Hub.
+NestJS WebSocket server that enables remote client access to your agent.
 
-#### 3.9.1 Purpose
+**Note**: Optional component. Most users don't need this for personal use.
 
-Bridges remote clients (web/mobile) to the Hub. Not needed for local Desktop use.
+#### 4.9.1 Purpose
 
-#### 3.9.2 Connection Protocol
+Bridges remote clients (web/mobile) to your agent. **Not needed for local Desktop use** — the primary use case.
+
+#### 4.9.2 Connection Protocol
 
 - Transport: Socket.io
 - Path: `/ws`
 - Port: 3000 (default)
 
-#### 3.9.3 Timeouts
+#### 4.9.3 Timeouts
 
 | Parameter | Value |
 |-----------|-------|
@@ -477,13 +623,13 @@ Bridges remote clients (web/mobile) to the Hub. Not needed for local Desktop use
 | Verify timeout | 30 seconds |
 | Reconnect delay | 1 second |
 
-#### 3.9.4 Message Routing
+#### 4.9.4 Message Routing
 
 - Each message has `from` (sender device ID) and `to` (target device ID)
 - Gateway validates: sender is registered, `from` matches socket, target exists
 - Supports streaming via `StreamAction` (message_start, message_update, message_end, tool events)
 
-#### 3.9.5 Error Codes
+#### 4.9.5 Error Codes
 
 | Code | Meaning |
 |------|---------|
@@ -493,11 +639,15 @@ Bridges remote clients (web/mobile) to the Hub. Not needed for local Desktop use
 
 ---
 
-### 3.10 Device Pairing & Verification
+### 4.10 Device Pairing & Verification
 
-How remote devices (web/mobile) connect to the Owner's Hub.
+> **User-Facing Value**: "Access your agent from your phone when you need it."
 
-#### 3.10.1 QR Code Generation (Desktop)
+**Note**: This is a power feature for users who want remote access. Not part of core onboarding or primary UI.
+
+How remote devices (web/mobile) connect to your agent.
+
+#### 4.10.1 QR Code Generation (Desktop)
 
 The Desktop app generates a QR code containing:
 
@@ -517,7 +667,7 @@ The Desktop app generates a QR code containing:
 - Auto-refresh: new token generated when expired
 - Also available as URL: `multica://connect?gateway=...&hub=...&agent=...&token=...&exp=...`
 
-#### 3.10.2 Connection Code Formats (accepted by client)
+#### 4.10.2 Connection Code Formats (accepted by client)
 
 | Format | Example |
 |--------|---------|
@@ -525,7 +675,7 @@ The Desktop app generates a QR code containing:
 | Base64 JSON | Base64-encoded JSON string |
 | URL | `multica://connect?gateway=...&hub=...&agent=...&token=...&exp=...` |
 
-#### 3.10.3 Verification Flow
+#### 4.10.3 Verification Flow
 
 ```
 1. Mobile scans QR / pastes code
@@ -542,7 +692,7 @@ The Desktop app generates a QR code containing:
 9. If rejected: connection closed
 ```
 
-#### 3.10.4 Device Whitelist
+#### 4.10.4 Device Whitelist
 
 - Location: `~/.super-multica/client-devices/whitelist.json`
 - Format:
@@ -563,17 +713,17 @@ The Desktop app generates a QR code containing:
 }
 ```
 
-#### 3.10.5 Reconnection (whitelisted device)
+#### 4.10.5 Reconnection (whitelisted device)
 
 Whitelisted devices reconnect without needing a new token or user confirmation. Hub checks `isAllowed(deviceId)` and returns immediately.
 
-#### 3.10.6 Device Management (Desktop)
+#### 4.10.6 Device Management (Desktop)
 
 - View verified devices list with metadata
 - Revoke individual devices (remove from whitelist)
 - No fine-grained permissions (all-or-nothing access)
 
-#### 3.10.7 Security Model
+#### 4.10.7 Security Model
 
 | Aspect | Detail |
 |--------|--------|
@@ -587,9 +737,9 @@ Whitelisted devices reconnect without needing a new token or user confirmation. 
 
 ---
 
-### 3.11 Credentials System
+### 4.11 Credentials System
 
-#### 3.11.1 Files
+#### 4.11.1 Files
 
 | File | Purpose | Permissions |
 |------|---------|-------------|
@@ -598,7 +748,7 @@ Whitelisted devices reconnect without needing a new token or user confirmation. 
 
 Format: JSON5 (supports comments, trailing commas, unquoted keys).
 
-#### 3.11.2 credentials.json5 Structure
+#### 4.11.2 credentials.json5 Structure
 
 ```json5
 {
@@ -621,7 +771,7 @@ Format: JSON5 (supports comments, trailing commas, unquoted keys).
 }
 ```
 
-#### 3.11.3 skills.env.json5 Structure
+#### 4.11.3 skills.env.json5 Structure
 
 ```json5
 {
@@ -632,7 +782,7 @@ Format: JSON5 (supports comments, trailing commas, unquoted keys).
 }
 ```
 
-#### 3.11.4 Environment Variable Overrides
+#### 4.11.4 Environment Variable Overrides
 
 | Variable | Purpose |
 |----------|---------|
@@ -642,38 +792,125 @@ Format: JSON5 (supports comments, trailing commas, unquoted keys).
 
 ---
 
-## 4. Platform Details
+### 4.12 Channel Integration
 
-### 4.1 Desktop App (Primary)
+> **User-Facing Value**: "Chat with your agent from Telegram when you're away from your desk."
+
+**Note**: Power feature for users who want additional access methods. Not part of core experience.
+
+Channels enable external messaging platforms to communicate with the Agent. Currently supported: Telegram.
+
+#### 4.12.1 Architecture
+
+```
+External Platform (Telegram)
+    ↓
+Channel Adapter (grammy library)
+    ↓
+Channel Manager (message routing)
+    ↓
+Hub → Agent Engine
+    ↓
+Response routed back via lastRoute
+```
+
+#### 4.12.2 Telegram Channel
+
+| Feature | Description |
+|---------|-------------|
+| **Connection Mode** | Long polling (default) or Webhook |
+| **Bot Setup** | User creates bot via @BotFather, provides token |
+| **Message Handling** | Text messages forwarded to Agent |
+| **Response Routing** | Replies sent back to same Telegram chat |
+| **Message Chunking** | Long responses split into multiple messages (4096 char limit) |
+
+**Setup Flow**:
+
+1. User opens @BotFather in Telegram
+2. Creates new bot with `/newbot`
+3. Copies bot token (format: `123456789:ABCdefGHI...`)
+4. Pastes token in Multica Desktop → Settings → Channels
+5. Bot starts, ready to receive messages
+
+**Status Indicators**:
+
+| Status | Meaning | User Action |
+|--------|---------|-------------|
+| `starting` | Bot initializing | Wait |
+| `running` | Bot active, receiving messages | None |
+| `error` | Connection failed | Check token, retry |
+| `stopped` | Bot disabled | Enable in settings |
+
+#### 4.12.3 Message Path Routing
+
+The system maintains a `lastRoute` to ensure responses go back through the correct channel:
+
+| Message Source | Route | Response Destination |
+|----------------|-------|---------------------|
+| Desktop IPC | `local` | Desktop chat UI |
+| Web/Mobile via Gateway | `gateway:{deviceId}` | Same device via Gateway |
+| Telegram | `telegram:{chatId}` | Same Telegram chat |
+
+**Design Note**: This routing is automatic. Users don't need to understand it, but it enables seamless multi-channel conversations.
+
+#### 4.12.4 Future Extensibility
+
+The channel architecture is designed to support additional platforms:
+
+| Potential Channel | Status | Notes |
+|-------------------|--------|-------|
+| Discord | Planned | Similar bot model to Telegram |
+| Slack | Planned | Workspace app integration |
+| WhatsApp | Considered | Business API required |
+| Email | Considered | IMAP/SMTP integration |
+
+**Design Guidance**: When designing channel settings UI, use a consistent pattern:
+- Platform icon + name
+- Connection status indicator
+- Setup/configure button
+- Disconnect option
+
+---
+
+## 5. Platform Details
+
+### 5.1 Desktop App (Primary)
 
 **Technology**: Electron + Vite + React 19
 
 **Window**: 1200x800, context isolation enabled, node integration disabled
 
-#### 4.1.1 Pages
+#### 5.1.1 Pages
 
 | Route | Page | Purpose |
 |-------|------|---------|
-| `/` | Home | Hub status, QR code, provider selector, agent settings, device list |
-| `/chat` | Chat | Message history, chat input, mode switcher (local/remote) |
+| `/` | Dashboard | Agent status, current provider/model, quick actions |
+| `/chat` | Chat | Message history, chat input |
 | `/tools` | Tools | Tool listing and inspection |
 | `/skills` | Skills | Skill listing and management |
+| `/settings` | Settings | Provider config, remote access, advanced options |
 
-**Navigation**: Tab bar at top (Home, Chat, Tools, Skills)
+**Navigation**: Sidebar (planned) — Dashboard, Chat, Tools, Skills, Settings
 
-#### 4.1.2 Home Page Components
+**Dashboard Focus**: Show what your agent can do and its current state, not "how to connect devices".
 
-| Component | Description |
-|-----------|-------------|
-| QR Code | Left side. Shows connection code with 30s countdown. Refresh/copy link buttons. |
-| Hub Status | Right side. Hub ID, connection state indicator (green/yellow/red). |
-| Agent Settings | Agent name (editable). |
-| Provider Selector | Dropdown showing all providers with availability status. API Key dialog or OAuth dialog based on provider type. |
-| Device List | Verified devices with name, platform, revoke button. |
-| Open Chat | Button. Disabled if Hub not connected. |
-| Connect to Remote Agent | Button. Navigate to remote agent connection. |
+#### 5.1.2 Dashboard Components (Planned)
 
-#### 4.1.3 Chat Page Modes
+| Component | Description | Priority |
+|-----------|-------------|----------|
+| Agent Status | Running/Idle indicator, current task if any | P0 |
+| Provider Info | Current provider + model, token usage if available | P1 |
+| Quick Actions | "Start Chat", "New Session" | P1 |
+| Capabilities Overview | Available tools and skills summary | P1 |
+| Session History | Recent conversations, quick resume | P2 |
+| Settings Access | Link to provider config, advanced settings | P2 |
+
+**Moved to Settings → Remote Access**:
+- QR Code for device pairing
+- Connected devices list
+- Gateway configuration
+
+#### 5.1.3 Chat Page Modes
 
 | Mode | Transport | When Used |
 |------|-----------|-----------|
@@ -682,7 +919,7 @@ Format: JSON5 (supports comments, trailing commas, unquoted keys).
 
 Mode switcher available at top of chat page.
 
-#### 4.1.4 Desktop IPC Channels
+#### 5.1.4 Desktop IPC Channels
 
 | Channel | Direction | Purpose |
 |---------|-----------|---------|
@@ -693,7 +930,7 @@ Mode switcher available at top of chat page.
 
 ---
 
-### 4.2 Web App
+### 5.2 Web App
 
 **Technology**: Next.js 16 + App Router
 
@@ -710,7 +947,7 @@ Mode switcher available at top of chat page.
 
 ---
 
-### 4.3 Mobile App
+### 5.3 Mobile App
 
 **Technology**: Expo + React Native
 
@@ -724,11 +961,11 @@ Mode switcher available at top of chat page.
 
 ---
 
-### 4.4 CLI
+### 5.4 CLI
 
 **Entry point**: `multica` (alias: `mu`)
 
-#### 4.4.1 Commands
+#### 5.4.1 Commands
 
 | Command | Description |
 |---------|-------------|
@@ -742,7 +979,7 @@ Mode switcher available at top of chat page.
 | `multica credentials init/show/edit` | Credentials management |
 | `multica dev [service]` | Development servers |
 
-#### 4.4.2 Interactive Mode Commands
+#### 5.4.2 Interactive Mode Commands
 
 | Command | Description |
 |---------|-------------|
@@ -758,7 +995,7 @@ Mode switcher available at top of chat page.
 
 **Features**: Autocomplete (Shift+Tab), status bar (session/provider/model), multi-line mode (end with `.`).
 
-#### 4.4.3 Development Servers
+#### 5.4.3 Development Servers
 
 | Service | Command | Port |
 |---------|---------|------|
@@ -769,11 +1006,11 @@ Mode switcher available at top of chat page.
 
 ---
 
-## 5. UI Component Library
+## 6. UI Component Library
 
 Shared package: `@multica/ui`. Used by Desktop, Web, and Mobile.
 
-### 5.1 Chat Components
+### 6.1 Chat Components
 
 | Component | Props | Description |
 |-----------|-------|-------------|
@@ -785,7 +1022,7 @@ Shared package: `@multica/ui`. Used by Desktop, Web, and Mobile.
 | `ChatSkeleton` | (none) | Loading skeleton |
 | `ToolCallItem` | `message` | Tool execution display: status dot, label, subtitle, expandable results |
 
-### 5.2 Markdown Components
+### 6.2 Markdown Components
 
 | Component | Props | Description |
 |-----------|-------|-------------|
@@ -793,11 +1030,11 @@ Shared package: `@multica/ui`. Used by Desktop, Web, and Mobile.
 | `StreamingMarkdown` | `content`, `isStreaming`, `mode` | Incremental markdown with animated cursor |
 | `CodeBlock` | (internal) | Syntax-highlighted code block with copy button |
 
-### 5.3 Base UI Components (Shadcn/UI)
+### 6.3 Base UI Components (Shadcn/UI)
 
 button, input, textarea, card, dialog, alert-dialog, dropdown-menu, select, combobox, badge, label, field, input-group, switch, skeleton, separator, sheet, sidebar, tooltip, sonner (toasts)
 
-### 5.4 Utility Components
+### 6.4 Utility Components
 
 | Component | Description |
 |-----------|-------------|
@@ -809,7 +1046,7 @@ button, input, textarea, card, dialog, alert-dialog, dropdown-menu, select, comb
 
 ---
 
-## 6. Data Persistence Locations
+## 7. Data Persistence Locations
 
 | Data | Location | Format | Lifetime |
 |------|----------|--------|----------|
@@ -828,7 +1065,7 @@ button, input, textarea, card, dialog, alert-dialog, dropdown-menu, select, comb
 
 ---
 
-## 7. Current Limitations
+## 8. Current Limitations
 
 | Area | Limitation | Notes |
 |------|-----------|-------|
@@ -843,5 +1080,8 @@ button, input, textarea, card, dialog, alert-dialog, dropdown-menu, select, comb
 
 ---
 
-*Document generated: 2026-02-05*
-*Source: codebase analysis at commit fc6c3e3 on branch feat/mobile-pwa-optimization*
+*Document generated: 2026-02-11*
+*Source: codebase analysis on branch feat/onboarding-check*
+*Updates:*
+- *Added Core Value Propositions (Section 2), Exec Approval Protocol (4.3.5), Channel Integration (4.12)*
+- *2026-02-11: **Product positioning shift** — from "distributed framework" to "personal AI agent". Remote access demoted to power feature. Dashboard replaces connection-focused home page.*

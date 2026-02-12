@@ -42,14 +42,34 @@ function findCodeRanges(text: string): CodeRange[] {
     ranges.push({ start: match.index, end: match.index + match[0].length })
   }
 
+  // Find display math blocks ($$...$$)
+  const displayMathRegex = /\$\$[\s\S]*?\$\$/g
+  while ((match = displayMathRegex.exec(text)) !== null) {
+    const pos = match.index
+    const insideOther = ranges.some((r) => pos >= r.start && pos < r.end)
+    if (!insideOther) {
+      ranges.push({ start: pos, end: pos + match[0].length })
+    }
+  }
+
+  // Find inline math ($...$)
+  const inlineMathRegex = /(?<!\$)\$(?!\$)([^\$\n]+)\$(?!\$)/g
+  while ((match = inlineMathRegex.exec(text)) !== null) {
+    const pos = match.index
+    const insideOther = ranges.some((r) => pos >= r.start && pos < r.end)
+    if (!insideOther) {
+      ranges.push({ start: pos, end: pos + match[0].length })
+    }
+  }
+
   // Find inline code (`...`)
   // But skip escaped backticks and code inside fenced blocks
   const inlineRegex = /(?<!`)`(?!`)([^`\n]+)`(?!`)/g
   while ((match = inlineRegex.exec(text)) !== null) {
     const pos = match.index
-    // Check if this is inside a fenced block
-    const insideFenced = ranges.some((r) => pos >= r.start && pos < r.end)
-    if (!insideFenced) {
+    // Check if this is inside a fenced block or math block
+    const insideOther = ranges.some((r) => pos >= r.start && pos < r.end)
+    if (!insideOther) {
       ranges.push({ start: pos, end: pos + match[0].length })
     }
   }
