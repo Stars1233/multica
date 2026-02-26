@@ -125,7 +125,7 @@ export function UpdateNotification(): React.JSX.Element | null {
               size="sm"
               variant="outline"
               onClick={() =>
-                window.open('https://github.com/multica-ai/multica/releases', '_blank')
+                window.open('https://github.com/multica-ai/super-multica/releases', '_blank')
               }
             >
               View Releases
