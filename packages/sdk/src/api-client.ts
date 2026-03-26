@@ -26,6 +26,8 @@ import type {
   PersonalAccessToken,
   CreatePersonalAccessTokenRequest,
   CreatePersonalAccessTokenResponse,
+  RuntimeUsage,
+  RuntimePing,
 } from "@multica/types";
 import { type SDKLogger, noopLogger } from "./logger";
 
@@ -230,6 +232,20 @@ export class ApiClient {
     const wsId = params?.workspace_id ?? this.workspaceId;
     if (wsId) search.set("workspace_id", wsId);
     return this.fetch(`/api/runtimes?${search}`);
+  }
+
+  async getRuntimeUsage(runtimeId: string, params?: { days?: number }): Promise<RuntimeUsage[]> {
+    const search = new URLSearchParams();
+    if (params?.days) search.set("days", String(params.days));
+    return this.fetch(`/api/runtimes/${runtimeId}/usage?${search}`);
+  }
+
+  async pingRuntime(runtimeId: string): Promise<RuntimePing> {
+    return this.fetch(`/api/runtimes/${runtimeId}/ping`, { method: "POST" });
+  }
+
+  async getPingResult(runtimeId: string, pingId: string): Promise<RuntimePing> {
+    return this.fetch(`/api/runtimes/${runtimeId}/ping/${pingId}`);
   }
 
   async listAgentTasks(agentId: string): Promise<AgentTask[]> {

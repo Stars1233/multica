@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/multica-ai/multica/server/internal/daemon/execenv"
+	"github.com/multica-ai/multica/server/internal/daemon/usage"
 	"github.com/multica-ai/multica/server/pkg/agent"
 )
 
@@ -54,7 +55,8 @@ func (d *Daemon) Run(ctx context.Context) error {
 		runtimeIDs = append(runtimeIDs, rt.ID)
 	}
 
-	go d.heartbeatLoop(ctx, runtimeIDs)
+	go d.heartbeatLoop(ctx, runtimes)
+	go d.usageScanLoop(ctx, runtimes)
 	return d.pollLoop(ctx, runtimeIDs)
 }
 
@@ -164,7 +166,7 @@ func (d *Daemon) ensurePaired(ctx context.Context) (string, error) {
 	}
 }
 
-func (d *Daemon) heartbeatLoop(ctx context.Context, runtimeIDs []string) {
+func (d *Daemon) heartbeatLoop(ctx context.Context, runtimes []Runtime) {
 	ticker := time.NewTicker(d.cfg.HeartbeatInterval)
 	defer ticker.Stop()
 
@@ -173,11 +175,151 @@ func (d *Daemon) heartbeatLoop(ctx context.Context, runtimeIDs []string) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			for _, rid := range runtimeIDs {
-				if err := d.client.SendHeartbeat(ctx, rid); err != nil {
-					d.logger.Warn("heartbeat failed", "runtime_id", rid, "error", err)
+			for _, rt := range runtimes {
+				resp, err := d.client.SendHeartbeat(ctx, rt.ID)
+				if err != nil {
+					d.logger.Warn("heartbeat failed", "runtime_id", rt.ID, "error", err)
+					continue
+				}
+
+				// Handle pending ping requests.
+				if resp.PendingPing != nil {
+					go d.handlePing(ctx, rt, resp.PendingPing.ID)
 				}
 			}
+		}
+	}
+}
+
+func (d *Daemon) handlePing(ctx context.Context, rt Runtime, pingID string) {
+	d.logger.Info("ping requested", "runtime_id", rt.ID, "ping_id", pingID, "provider", rt.Provider)
+
+	start := time.Now()
+
+	entry, ok := d.cfg.Agents[rt.Provider]
+	if !ok {
+		d.client.ReportPingResult(ctx, rt.ID, pingID, map[string]any{
+			"status":      "failed",
+			"error":       fmt.Sprintf("no agent configured for provider %q", rt.Provider),
+			"duration_ms": time.Since(start).Milliseconds(),
+		})
+		return
+	}
+
+	backend, err := agent.New(rt.Provider, agent.Config{
+		ExecutablePath: entry.Path,
+		Logger:         d.logger,
+	})
+	if err != nil {
+		d.client.ReportPingResult(ctx, rt.ID, pingID, map[string]any{
+			"status":      "failed",
+			"error":       err.Error(),
+			"duration_ms": time.Since(start).Milliseconds(),
+		})
+		return
+	}
+
+	pingCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
+
+	session, err := backend.Execute(pingCtx, "Respond with exactly one word: pong", agent.ExecOptions{
+		MaxTurns: 1,
+		Timeout:  60 * time.Second,
+	})
+	if err != nil {
+		d.client.ReportPingResult(ctx, rt.ID, pingID, map[string]any{
+			"status":      "failed",
+			"error":       err.Error(),
+			"duration_ms": time.Since(start).Milliseconds(),
+		})
+		return
+	}
+
+	// Drain messages
+	go func() {
+		for range session.Messages {
+		}
+	}()
+
+	result := <-session.Result
+	durationMs := time.Since(start).Milliseconds()
+
+	if result.Status == "completed" {
+		d.logger.Info("ping completed", "runtime_id", rt.ID, "ping_id", pingID, "duration_ms", durationMs)
+		d.client.ReportPingResult(ctx, rt.ID, pingID, map[string]any{
+			"status":      "completed",
+			"output":      result.Output,
+			"duration_ms": durationMs,
+		})
+	} else {
+		errMsg := result.Error
+		if errMsg == "" {
+			errMsg = fmt.Sprintf("agent returned status: %s", result.Status)
+		}
+		d.logger.Warn("ping failed", "runtime_id", rt.ID, "ping_id", pingID, "error", errMsg)
+		d.client.ReportPingResult(ctx, rt.ID, pingID, map[string]any{
+			"status":      "failed",
+			"error":       errMsg,
+			"duration_ms": durationMs,
+		})
+	}
+}
+
+func (d *Daemon) usageScanLoop(ctx context.Context, runtimes []Runtime) {
+	scanner := usage.NewScanner(d.logger)
+
+	// Build provider -> runtime ID mapping.
+	providerToRuntime := make(map[string]string)
+	for _, rt := range runtimes {
+		providerToRuntime[rt.Provider] = rt.ID
+	}
+
+	report := func() {
+		records := scanner.Scan()
+		if len(records) == 0 {
+			return
+		}
+
+		// Group records by provider to send to the correct runtime.
+		byProvider := make(map[string][]map[string]any)
+		for _, r := range records {
+			byProvider[r.Provider] = append(byProvider[r.Provider], map[string]any{
+				"date":              r.Date,
+				"provider":          r.Provider,
+				"model":             r.Model,
+				"input_tokens":      r.InputTokens,
+				"output_tokens":     r.OutputTokens,
+				"cache_read_tokens": r.CacheReadTokens,
+				"cache_write_tokens": r.CacheWriteTokens,
+			})
+		}
+
+		for provider, entries := range byProvider {
+			runtimeID, ok := providerToRuntime[provider]
+			if !ok {
+				d.logger.Debug("no runtime for provider, skipping usage report", "provider", provider)
+				continue
+			}
+			if err := d.client.ReportUsage(ctx, runtimeID, entries); err != nil {
+				d.logger.Warn("usage report failed", "provider", provider, "runtime_id", runtimeID, "error", err)
+			} else {
+				d.logger.Info("usage reported", "provider", provider, "runtime_id", runtimeID, "entries", len(entries))
+			}
+		}
+	}
+
+	// Initial scan on startup.
+	report()
+
+	ticker := time.NewTicker(5 * time.Minute)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			report()
 		}
 	}
 }

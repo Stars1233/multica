@@ -3,7 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	db "github.com/multica-ai/multica/server/pkg/db/generated"
 )
 
@@ -45,6 +49,114 @@ func runtimeToResponse(rt db.AgentRuntime) AgentRuntimeResponse {
 		CreatedAt:   timestampToString(rt.CreatedAt),
 		UpdatedAt:   timestampToString(rt.UpdatedAt),
 	}
+}
+
+// ---------------------------------------------------------------------------
+// Runtime Usage
+// ---------------------------------------------------------------------------
+
+type RuntimeUsageEntry struct {
+	Date             string `json:"date"`
+	Provider         string `json:"provider"`
+	Model            string `json:"model"`
+	InputTokens      int64  `json:"input_tokens"`
+	OutputTokens     int64  `json:"output_tokens"`
+	CacheReadTokens  int64  `json:"cache_read_tokens"`
+	CacheWriteTokens int64  `json:"cache_write_tokens"`
+}
+
+type RuntimeUsageResponse struct {
+	RuntimeID        string `json:"runtime_id"`
+	Date             string `json:"date"`
+	Provider         string `json:"provider"`
+	Model            string `json:"model"`
+	InputTokens      int64  `json:"input_tokens"`
+	OutputTokens     int64  `json:"output_tokens"`
+	CacheReadTokens  int64  `json:"cache_read_tokens"`
+	CacheWriteTokens int64  `json:"cache_write_tokens"`
+}
+
+// ReportRuntimeUsage receives usage data from the daemon (unauthenticated daemon route).
+func (h *Handler) ReportRuntimeUsage(w http.ResponseWriter, r *http.Request) {
+	runtimeID := chi.URLParam(r, "runtimeId")
+	if runtimeID == "" {
+		writeError(w, http.StatusBadRequest, "runtimeId is required")
+		return
+	}
+
+	var req struct {
+		Entries []RuntimeUsageEntry `json:"entries"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	for _, entry := range req.Entries {
+		date, err := time.Parse("2006-01-02", entry.Date)
+		if err != nil {
+			continue
+		}
+		h.Queries.UpsertRuntimeUsage(r.Context(), db.UpsertRuntimeUsageParams{
+			RuntimeID:        parseUUID(runtimeID),
+			Date:             pgtype.Date{Time: date, Valid: true},
+			Provider:         entry.Provider,
+			Model:            entry.Model,
+			InputTokens:      entry.InputTokens,
+			OutputTokens:     entry.OutputTokens,
+			CacheReadTokens:  entry.CacheReadTokens,
+			CacheWriteTokens: entry.CacheWriteTokens,
+		})
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+// GetRuntimeUsage returns usage data for a runtime (protected route).
+func (h *Handler) GetRuntimeUsage(w http.ResponseWriter, r *http.Request) {
+	runtimeID := chi.URLParam(r, "runtimeId")
+
+	rt, err := h.Queries.GetAgentRuntime(r.Context(), parseUUID(runtimeID))
+	if err != nil {
+		writeError(w, http.StatusNotFound, "runtime not found")
+		return
+	}
+
+	if _, ok := h.requireWorkspaceMember(w, r, uuidToString(rt.WorkspaceID), "runtime not found"); !ok {
+		return
+	}
+
+	limit := int32(90)
+	if l := r.URL.Query().Get("days"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 && parsed <= 365 {
+			limit = int32(parsed)
+		}
+	}
+
+	rows, err := h.Queries.ListRuntimeUsage(r.Context(), db.ListRuntimeUsageParams{
+		RuntimeID: parseUUID(runtimeID),
+		Limit:     limit,
+	})
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to list usage")
+		return
+	}
+
+	resp := make([]RuntimeUsageResponse, len(rows))
+	for i, row := range rows {
+		resp[i] = RuntimeUsageResponse{
+			RuntimeID:        runtimeID,
+			Date:             row.Date.Time.Format("2006-01-02"),
+			Provider:         row.Provider,
+			Model:            row.Model,
+			InputTokens:      row.InputTokens,
+			OutputTokens:     row.OutputTokens,
+			CacheReadTokens:  row.CacheReadTokens,
+			CacheWriteTokens: row.CacheWriteTokens,
+		}
+	}
+
+	writeJSON(w, http.StatusOK, resp)
 }
 
 func (h *Handler) ListAgentRuntimes(w http.ResponseWriter, r *http.Request) {

@@ -132,7 +132,15 @@ func (h *Handler) DaemonHeartbeat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	slog.Debug("daemon heartbeat", "runtime_id", req.RuntimeID)
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+
+	resp := map[string]any{"status": "ok"}
+
+	// Check for pending ping requests for this runtime.
+	if pending := h.PingStore.PopPending(req.RuntimeID); pending != nil {
+		resp["pending_ping"] = map[string]string{"id": pending.ID}
+	}
+
+	writeJSON(w, http.StatusOK, resp)
 }
 
 // ClaimTaskByRuntime atomically claims the next queued task for a runtime.

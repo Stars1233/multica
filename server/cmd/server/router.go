@@ -90,6 +90,8 @@ func NewRouter(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus) chi.Route
 
 		r.Post("/runtimes/{runtimeId}/tasks/claim", h.ClaimTaskByRuntime)
 		r.Get("/runtimes/{runtimeId}/tasks/pending", h.ListPendingTasksByRuntime)
+		r.Post("/runtimes/{runtimeId}/usage", h.ReportRuntimeUsage)
+		r.Post("/runtimes/{runtimeId}/ping/{pingId}/result", h.ReportPingResult)
 
 		r.Post("/tasks/{taskId}/start", h.StartTask)
 		r.Post("/tasks/{taskId}/progress", h.ReportTaskProgress)
@@ -154,6 +156,9 @@ func NewRouter(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus) chi.Route
 
 		r.Route("/api/runtimes", func(r chi.Router) {
 			r.Get("/", h.ListAgentRuntimes)
+			r.Get("/{runtimeId}/usage", h.GetRuntimeUsage)
+			r.Post("/{runtimeId}/ping", h.InitiatePing)
+			r.Get("/{runtimeId}/ping/{pingId}", h.GetPing)
 		})
 
 		r.Post("/api/daemon/pairing-sessions/{token}/approve", h.ApproveDaemonPairingSession)

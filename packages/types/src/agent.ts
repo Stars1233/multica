@@ -142,3 +142,27 @@ export interface UpdateSkillRequest {
 export interface SetAgentSkillsRequest {
   skill_ids: string[];
 }
+
+export type RuntimePingStatus = "pending" | "running" | "completed" | "failed" | "timeout";
+
+export interface RuntimePing {
+  id: string;
+  runtime_id: string;
+  status: RuntimePingStatus;
+  output?: string;
+  error?: string;
+  duration_ms?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RuntimeUsage {
+  runtime_id: string;
+  date: string;
+  provider: string;
+  model: string;
+  input_tokens: number;
+  output_tokens: number;
+  cache_read_tokens: number;
+  cache_write_tokens: number;
+}

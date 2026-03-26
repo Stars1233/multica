@@ -111,10 +111,35 @@ func (c *Client) FailTask(ctx context.Context, taskID, errMsg string) error {
 	}, nil)
 }
 
-func (c *Client) SendHeartbeat(ctx context.Context, runtimeID string) error {
-	return c.postJSON(ctx, "/api/daemon/heartbeat", map[string]string{
-		"runtime_id": runtimeID,
+func (c *Client) ReportUsage(ctx context.Context, runtimeID string, entries []map[string]any) error {
+	return c.postJSON(ctx, fmt.Sprintf("/api/daemon/runtimes/%s/usage", runtimeID), map[string]any{
+		"entries": entries,
 	}, nil)
+}
+
+// HeartbeatResponse contains the server's response to a heartbeat, including any pending actions.
+type HeartbeatResponse struct {
+	Status      string       `json:"status"`
+	PendingPing *PendingPing `json:"pending_ping,omitempty"`
+}
+
+// PendingPing represents a ping test request from the server.
+type PendingPing struct {
+	ID string `json:"id"`
+}
+
+func (c *Client) SendHeartbeat(ctx context.Context, runtimeID string) (*HeartbeatResponse, error) {
+	var resp HeartbeatResponse
+	if err := c.postJSON(ctx, "/api/daemon/heartbeat", map[string]string{
+		"runtime_id": runtimeID,
+	}, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func (c *Client) ReportPingResult(ctx context.Context, runtimeID, pingID string, result map[string]any) error {
+	return c.postJSON(ctx, fmt.Sprintf("/api/daemon/runtimes/%s/ping/%s/result", runtimeID, pingID), result, nil)
 }
 
 func (c *Client) Register(ctx context.Context, req map[string]any) ([]Runtime, error) {

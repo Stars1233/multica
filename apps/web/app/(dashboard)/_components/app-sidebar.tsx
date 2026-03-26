@@ -6,6 +6,7 @@ import {
   Inbox,
   ListTodo,
   Bot,
+  Monitor,
   BookOpen,
   ChevronDown,
   Settings,
@@ -49,6 +50,7 @@ const primaryNav = [
 
 const workspaceNav = [
   { href: "/agents", label: "Agents", icon: Bot },
+  { href: "/runtimes", label: "Runtimes", icon: Monitor },
   { href: "/skills", label: "Skills", icon: Sparkles },
   { href: "/knowledge-base", label: "Knowledge Base", icon: BookOpen },
 ];
