@@ -117,11 +117,13 @@ const TitleEditor = forwardRef<TitleEditorRef, TitleEditorProps>(
       },
     });
 
-    // Auto-focus after mount
+    // Auto-focus after mount — delay to wait for Dialog open animation
     useEffect(() => {
       if (autoFocus && editor) {
-        // Move cursor to end
-        editor.commands.focus("end");
+        const timer = setTimeout(() => {
+          editor.commands.focus("end");
+        }, 50);
+        return () => clearTimeout(timer);
       }
     }, [autoFocus, editor]);
 
