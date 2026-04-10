@@ -57,7 +57,10 @@ The architecture relies on a strict split between server state and client state.
 ## Commands
 
 ```bash
-# One-click setup & run
+# One-command dev (auto-setup + start everything)
+make dev              # Auto-creates env, installs deps, starts DB, migrates, launches app
+
+# Explicit setup & run (if you prefer separate steps)
 make setup            # First-time: ensure shared DB, create app DB, migrate
 make start            # Start backend + frontend together
 make stop             # Stop app processes for the current checkout
@@ -73,7 +76,7 @@ pnpm lint             # ESLint
 pnpm test             # TS tests (Vitest, all packages + apps via turbo)
 
 # Backend (Go)
-make dev              # Run Go server (port 8080)
+make server           # Run Go server only (port 8080)
 make daemon           # Run local daemon
 make build            # Build server + CLI binaries to server/bin/
 make cli ARGS="..."   # Run multica CLI (e.g. make cli ARGS="config")
@@ -112,6 +115,8 @@ CI runs on Node 22 and Go 1.26.1 with a `pgvector/pgvector:pg17` PostgreSQL serv
 ### Worktree Support
 
 All checkouts share one PostgreSQL container. Isolation is at the database level — each worktree gets its own DB name and unique ports via `.env.worktree`. Main checkouts use `.env`.
+
+`make dev` auto-detects worktrees and handles everything. For explicit control:
 
 ```bash
 make worktree-env       # Generate .env.worktree with unique DB/ports
