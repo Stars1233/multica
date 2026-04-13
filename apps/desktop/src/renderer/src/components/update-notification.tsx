@@ -37,15 +37,19 @@ export function UpdateNotification() {
   }, []);
 
   const handleDownload = useCallback(() => {
+    // Prevent double-click: immediately transition to downloading state
+    if (state.status !== "available") return;
     setState({ status: "downloading", percent: 0 });
     window.updater.downloadUpdate();
-  }, []);
+  }, [state.status]);
 
   const handleInstall = useCallback(() => {
     window.updater.installUpdate();
   }, []);
 
-  if (state.status === "idle" || dismissed) return null;
+  // Only allow dismiss when update is available (not during download or ready)
+  if (state.status === "idle") return null;
+  if (dismissed && state.status === "available") return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50 w-80 rounded-lg border border-border bg-background p-4 shadow-lg animate-in slide-in-from-bottom-2 fade-in duration-300">
@@ -98,8 +102,8 @@ export function UpdateNotification() {
 
       {state.status === "ready" && (
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 rounded-md bg-green-500/10 p-1.5">
-            <RefreshCw className="size-4 text-green-600 dark:text-green-400" />
+          <div className="mt-0.5 rounded-md bg-success/10 p-1.5">
+            <RefreshCw className="size-4 text-success" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium">Update ready</p>
