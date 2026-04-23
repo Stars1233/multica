@@ -59,6 +59,7 @@ func (b *claudeBackend) Execute(ctx context.Context, prompt string, opts ExecOpt
 	}()
 
 	cmd := exec.CommandContext(runCtx, execPath, args...)
+	hideAgentWindow(cmd)
 	b.cfg.Logger.Info("agent command", "exec", execPath, "args", args)
 	cmd.WaitDelay = 10 * time.Second
 	if opts.Cwd != "" {
@@ -552,6 +553,7 @@ func writeMcpConfigToTemp(raw json.RawMessage) (string, error) {
 
 func detectCLIVersion(ctx context.Context, execPath string) (string, error) {
 	cmd := exec.CommandContext(ctx, execPath, "--version")
+	hideAgentWindow(cmd)
 	data, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("detect version for %s: %w", execPath, err)
