@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeftRight, ChevronRight, X as XIcon } from "lucide-react";
+import { ArrowLeftRight, Check, ChevronRight, X as XIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { DialogTitle } from "@multica/ui/components/ui/dialog";
@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@multica/ui/components/ui/dropdown-menu";
 import { Button } from "@multica/ui/components/ui/button";
+import { Switch } from "@multica/ui/components/ui/switch";
 import { api, ApiError } from "@multica/core/api";
 import { useWorkspaceId } from "@multica/core/hooks";
 import { useCurrentWorkspace } from "@multica/core/paths";
@@ -79,6 +80,8 @@ export function AgentCreatePanel({
 
   const lastAgentId = useQuickCreateStore((s) => s.lastAgentId);
   const setLastAgentId = useQuickCreateStore((s) => s.setLastAgentId);
+  const keepOpen = useQuickCreateStore((s) => s.keepOpen);
+  const setKeepOpen = useQuickCreateStore((s) => s.setKeepOpen);
   const setLastMode = useCreateModeStore((s) => s.setLastMode);
 
   const [agentId, setAgentId] = useState<string | undefined>(() => {
@@ -131,6 +134,8 @@ export function AgentCreatePanel({
   const editorRef = useRef<ContentEditorRef>(null);
   const [hasContent, setHasContent] = useState(initialPrompt.trim().length > 0);
   const [submitting, setSubmitting] = useState(false);
+  const [justSent, setJustSent] = useState(false);
+  const [sentCount, setSentCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   // Image paste/drop support: route uploads through the same helper Advanced
@@ -165,7 +170,18 @@ export function AgentCreatePanel({
       toast.success("Sent to agent — you'll get an inbox notification when it's done", {
         duration: 4000,
       });
-      onClose();
+      if (keepOpen) {
+        // Stay open for continuous creation — clear the editor so the
+        // user can immediately type the next prompt.
+        editorRef.current?.clearContent();
+        setHasContent(false);
+        setSentCount((c) => c + 1);
+        setJustSent(true);
+        setTimeout(() => setJustSent(false), 1500);
+        requestAnimationFrame(() => editorRef.current?.focus());
+      } else {
+        onClose();
+      }
     } catch (e) {
       // Server returns 422 with { code, ... } for the structured rejection
       // paths the modal cares about. Surface the reason in-modal so the
@@ -340,7 +356,12 @@ export function AgentCreatePanel({
               size="sm"
               onSelect={(file) => editorRef.current?.uploadFile(file)}
             />
-            <span className="text-xs text-muted-foreground">⌘↵ to submit</span>
+            <span className="text-xs text-muted-foreground">
+              {keepOpen && sentCount > 0 && (
+                <span className="text-emerald-600 dark:text-emerald-400">{sentCount} sent · </span>
+              )}
+              ⌘↵ to submit
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -352,6 +373,14 @@ export function AgentCreatePanel({
               <ArrowLeftRight className="size-3.5" />
               Switch to manual
             </button>
+            <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+              <Switch
+                size="sm"
+                checked={keepOpen}
+                onCheckedChange={setKeepOpen}
+              />
+              Create another
+            </label>
             <Button
               size="sm"
               onClick={submit}
@@ -361,8 +390,11 @@ export function AgentCreatePanel({
                   ? `Daemon CLI must be ≥ ${versionCheck.min}`
                   : undefined
               }
+              className={justSent ? "!bg-emerald-600 !text-white" : undefined}
             >
-              {submitting ? "Sending…" : uploading ? "Uploading…" : "Create"}
+              {submitting ? "Sending…" : uploading ? "Uploading…" : justSent ? (
+                <span className="flex items-center gap-1"><Check className="size-3.5" />Sent</span>
+              ) : "Create"}
             </Button>
           </div>
         </div>
