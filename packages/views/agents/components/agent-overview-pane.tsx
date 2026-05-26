@@ -164,7 +164,7 @@ export function AgentOverviewPane({
         )}
         {activeTab === "skills" && (
           <TabContent>
-            <SkillsTab agent={agent} />
+            <SkillsTab agent={agent} runtime={runtime} />
           </TabContent>
         )}
         {activeTab === "env" && (

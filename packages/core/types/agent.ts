@@ -9,10 +9,11 @@ export type AgentVisibility = "workspace" | "private";
  * user-global skill directory into the agent. "merge" (default) preserves the
  * inherit-from-machine behavior; "ignore" isolates the runtime so a broken
  * local skill on one operator's machine cannot crash a shared agent (#3052).
- * Today only the Claude runtime honours the switch — others either already
- * isolate (Codex via CODEX_HOME) or treat it as a no-op. Older backends omit
- * the field; clients MUST treat undefined as "merge" so the documented
- * default wins on drift.
+ * Only the Claude and Codex runtimes honour the switch (Claude via
+ * CLAUDE_CONFIG_DIR, Codex via CODEX_HOME); the UI hides the toggle for
+ * other runtimes so users don't get a false sense of isolation. Older
+ * backends omit the field; clients MUST treat undefined as "merge" so the
+ * documented default wins on drift.
  */
 export type AgentSkillsLocal = "ignore" | "merge";
 

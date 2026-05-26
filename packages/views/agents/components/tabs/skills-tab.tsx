@@ -4,8 +4,13 @@ import { useState } from "react";
 import { FileText, Plus, Trash2 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { Agent, AgentSkillsLocal } from "@multica/core/types";
+import type {
+  Agent,
+  AgentRuntime,
+  AgentSkillsLocal,
+} from "@multica/core/types";
 import { api } from "@multica/core/api";
+import { isSkillsLocalSupportedProvider } from "@multica/core/agents";
 import { useWorkspaceId } from "@multica/core/hooks";
 import {
   skillListOptions,
@@ -18,8 +23,17 @@ import { useT } from "../../../i18n";
 
 export function SkillsTab({
   agent,
+  runtime,
 }: {
   agent: Agent;
+  /**
+   * The runtime this agent is bound to, if known. Used to decide whether
+   * the host-skill merge toggle is meaningful for this agent — only Claude
+   * and Codex runtimes honour `skills_local` today (MUL-2603). When the
+   * runtime is missing (parent couldn't resolve it, e.g. it was deleted)
+   * the toggle is hidden — there is no usable provider context to gate on.
+   */
+  runtime?: AgentRuntime | null;
 }) {
   const { t } = useT("agents");
   const qc = useQueryClient();
@@ -30,6 +44,7 @@ export function SkillsTab({
   const currentSkillsLocal: AgentSkillsLocal =
     agent.skills_local === "ignore" ? "ignore" : "merge";
   const [skillsLocalSaving, setSkillsLocalSaving] = useState(false);
+  const skillsLocalApplies = isSkillsLocalSupportedProvider(runtime?.provider);
   // Same query the SkillAddDialog uses (TanStack Query dedupes by key, so
   // this isn't an extra request) — used here only to grey out the "Add
   // skill" button when the workspace has zero skills total. When skills
@@ -92,12 +107,14 @@ export function SkillsTab({
         </Button>
       </div>
 
-      <SkillsLocalToggle
-        value={currentSkillsLocal}
-        onChange={handleSkillsLocalChange}
-        disabled={skillsLocalSaving}
-        hintScope="tab"
-      />
+      {skillsLocalApplies && (
+        <SkillsLocalToggle
+          value={currentSkillsLocal}
+          onChange={handleSkillsLocalChange}
+          disabled={skillsLocalSaving}
+          hintScope="tab"
+        />
+      )}
 
 
       {agent.skills.length === 0 ? (

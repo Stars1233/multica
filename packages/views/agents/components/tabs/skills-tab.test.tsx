@@ -3,7 +3,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
-import type { Agent } from "@multica/core/types";
+import type { Agent, AgentRuntime } from "@multica/core/types";
 import { I18nProvider } from "@multica/core/i18n/react";
 import enCommon from "../../../locales/en/common.json";
 import enAgents from "../../../locales/en/agents.json";
@@ -57,7 +57,31 @@ const agent: Agent = {
   archived_by: null,
 };
 
-function renderSkillsTab(overrides: Partial<Agent> = {}) {
+function makeRuntime(overrides: Partial<AgentRuntime> = {}): AgentRuntime {
+  return {
+    id: "runtime-1",
+    workspace_id: "ws-1",
+    daemon_id: null,
+    name: "Runtime",
+    runtime_mode: "local",
+    provider: "claude",
+    launch_header: "",
+    status: "online",
+    device_info: "",
+    metadata: {},
+    owner_id: null,
+    visibility: "public",
+    last_seen_at: null,
+    created_at: "2026-04-16T00:00:00Z",
+    updated_at: "2026-04-16T00:00:00Z",
+    ...overrides,
+  };
+}
+
+function renderSkillsTab(
+  overrides: Partial<Agent> = {},
+  runtime: AgentRuntime | null = makeRuntime(),
+) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -69,7 +93,7 @@ function renderSkillsTab(overrides: Partial<Agent> = {}) {
   return render(
     <I18nProvider locale="en" resources={TEST_RESOURCES}>
       <QueryClientProvider client={queryClient}>
-        <SkillsTab agent={{ ...agent, ...overrides }} />
+        <SkillsTab agent={{ ...agent, ...overrides }} runtime={runtime} />
       </QueryClientProvider>
     </I18nProvider>,
   );
@@ -129,5 +153,46 @@ describe("SkillsTab", () => {
       name: /Allow locally installed skills/i,
     });
     expect(toggle.getAttribute("aria-checked")).toBe("false");
+  });
+
+  it("renders the toggle for Codex runtimes too", async () => {
+    renderSkillsTab({}, makeRuntime({ provider: "codex" }));
+
+    expect(
+      await screen.findByRole("switch", {
+        name: /Allow locally installed skills/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides the toggle for runtimes that don't honour skills_local", async () => {
+    // Only Claude and Codex runtimes actually enforce skills_local at exec
+    // time today (MUL-2603); on every other provider the field would be
+    // stored but ignored, so the toggle is suppressed to avoid implying
+    // behaviour the runtime won't deliver.
+    renderSkillsTab({}, makeRuntime({ provider: "copilot" }));
+
+    // The rest of the tab still renders.
+    expect(
+      await screen.findByText(/Workspace skills assigned to this agent/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("switch", {
+        name: /Allow locally installed skills/i,
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides the toggle when the runtime cannot be resolved", async () => {
+    renderSkillsTab({}, null);
+
+    expect(
+      await screen.findByText(/Workspace skills assigned to this agent/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("switch", {
+        name: /Allow locally installed skills/i,
+      }),
+    ).not.toBeInTheDocument();
   });
 });

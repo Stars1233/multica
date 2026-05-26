@@ -36,6 +36,7 @@ import {
   AGENT_DESCRIPTION_MAX_LENGTH,
   VISIBILITY_DESCRIPTION,
   VISIBILITY_LABEL,
+  isSkillsLocalSupportedProvider,
 } from "@multica/core/agents";
 import { CharCounter } from "./char-counter";
 import { useT } from "../../i18n";
@@ -126,6 +127,13 @@ export function CreateAgentDialog({
   const selectedRuntimeLocked =
     selectedRuntime != null &&
     !isRuntimeUsableForUser(selectedRuntime, currentUserId);
+  // The skills_local switch only has runtime support on claude / codex
+  // today — everywhere else the field would be stored but ignored at
+  // exec time, so the toggle is hidden to avoid implying behavior the
+  // backend won't deliver. See MUL-2603.
+  const skillsLocalApplies = isSkillsLocalSupportedProvider(
+    selectedRuntime?.provider,
+  );
 
   // Shared squad-join follow-up. Returns nothing — the caller has
   // already shown its create-success toast; we only need to surface a
@@ -171,11 +179,15 @@ export function CreateAgentDialog({
         model: model.trim() || undefined,
         instructions: trimmedInstructions || undefined,
         avatar_url: avatarUrl ?? undefined,
-        // Only send the toggle when the user opted into isolation.
+        // Only send the toggle when the user opted into isolation AND the
+        // selected runtime actually honours it (claude / codex today).
         // "merge" is the server-side default; omitting the field keeps the
         // request body small and prevents older backends without the
-        // column from rejecting the request.
-        skills_local: skillsLocal === "ignore" ? "ignore" : undefined,
+        // column from rejecting the request. Provider gating mirrors the
+        // toggle visibility — we never persist a value the runtime would
+        // ignore at exec time.
+        skills_local:
+          skillsLocalApplies && skillsLocal === "ignore" ? "ignore" : undefined,
       };
       if (template) {
         // Duplicate path: forward the hidden config fields the source
@@ -374,11 +386,13 @@ export function CreateAgentDialog({
               onChange={setSelectedSkillIds}
             />
 
-            <SkillsLocalToggle
-              value={skillsLocal}
-              onChange={setSkillsLocal}
-              hintScope="create"
-            />
+            {skillsLocalApplies && (
+              <SkillsLocalToggle
+                value={skillsLocal}
+                onChange={setSkillsLocal}
+                hintScope="create"
+              />
+            )}
           </div>
         </div>
 

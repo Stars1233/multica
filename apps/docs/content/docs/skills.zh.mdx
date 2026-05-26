@@ -32,7 +32,7 @@ Multica 支持两种 Skill 来源：
 - **Claude Code** —— 关闭时把 `CLAUDE_CONFIG_DIR` 指向按任务隔离的目录，里面镜像了主机有效的 Claude 配置目录中除 `skills/` 之外的内容（见上）。
 - **Codex** —— Codex 一向运行在按任务隔离的 `CODEX_HOME` 下。开启（默认）时守护进程会把共享的 `~/.codex/skills/` seed 到该目录；关闭时跳过这一步，Codex CLI 只能看到工作区 skill。
 
-对其它运行时（Hermes / Kimi / Kiro / Copilot / Cursor / Gemini / Pi / OpenCode / OpenClaw），守护进程既不改写用户的 `$HOME`，也不主动管理用户级 skill 发现——这些运行时是否读取任何用户级 skill 目录，完全由各自的 CLI 决定。**无论该开关如何设置，对这些运行时都是 no-op**；待上游 CLI 提供必要的隔离开关后，可以再补齐。
+对其它运行时（Hermes / Kimi / Kiro / Copilot / Cursor / Gemini / Pi / OpenCode / OpenClaw），守护进程既不改写用户的 `$HOME`，也不主动管理用户级 skill 发现——这些运行时是否读取任何用户级 skill 目录，完全由各自的 CLI 决定。**在创建 Agent 弹窗和 Skills 标签页里，这些运行时下不会展示该开关**，避免让用户误以为守护进程会替它们做隔离；待上游 CLI 提供必要的隔离开关后，可以再补齐。
 
 ## 导入 Skill
 

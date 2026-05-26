@@ -261,6 +261,49 @@ describe("CreateAgentDialog runtime visibility gate", () => {
     expect(onCreate.mock.calls[0]?.[0].runtime_id).toBe("rt-mine");
   });
 
+  it("renders the skills_local toggle when the selected runtime is claude", () => {
+    const mine = makeRuntime({
+      id: "rt-mine",
+      name: "My Runtime",
+      owner_id: ME,
+      provider: "claude",
+    });
+    renderDialog([mine]);
+
+    expect(
+      screen.getByRole("switch", { name: /Allow locally installed skills/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides the skills_local toggle for runtimes that don't honour it", async () => {
+    // Other providers either already isolate (no need for the toggle) or
+    // currently ignore the field at exec time. Showing the toggle there
+    // would mislead users into thinking it gates host-skill access for
+    // their runtime. MUL-2603 follow-up.
+    const copilot = makeRuntime({
+      id: "rt-copilot",
+      name: "Copilot Runtime",
+      owner_id: ME,
+      provider: "copilot",
+    });
+    const { onCreate } = renderDialog([copilot]);
+
+    expect(
+      screen.queryByRole("switch", {
+        name: /Allow locally installed skills/i,
+      }),
+    ).not.toBeInTheDocument();
+
+    // The payload must never carry skills_local for unsupported runtimes.
+    fireEvent.change(screen.getByPlaceholderText(/Deep Research Agent/i), {
+      target: { value: "Test" },
+    });
+    fireEvent.click(screen.getByText("Create"));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    expect(onCreate.mock.calls[0]?.[0].skills_local).toBeUndefined();
+  });
+
   it("disables Create when the selected runtime is locked (template + no usable fallback)", () => {
     // Edge case: template points at a locked runtime AND the workspace
     // has no usable alternatives in scope. The defense-in-depth gate on

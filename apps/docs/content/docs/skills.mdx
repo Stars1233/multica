@@ -32,7 +32,7 @@ Workspace skills under `{workDir}/.claude/skills/` (and the equivalent workdir-s
 - **Claude Code** — when set to **Off**, `CLAUDE_CONFIG_DIR` points at a per-task scratch dir that mirrors the host's effective Claude config dir *except* for `skills/` (see above).
 - **Codex** — Codex always runs inside a per-task `CODEX_HOME`. When set to **On (default)** the daemon seeds that `CODEX_HOME` with user-installed skills from the shared `~/.codex/skills/`; when set to **Off** the seed step is skipped, so the Codex CLI sees only workspace skills.
 
-For every other runtime (Hermes / Kimi / Kiro / Copilot / Cursor / Gemini / Pi / OpenCode / OpenClaw) the daemon leaves the user's `$HOME` untouched and does not actively manage user-level skill discovery — whether that runtime reads any user-level skill directory is entirely up to its own CLI. **The toggle is a no-op for these runtimes today**, regardless of where it is set; a future change can extend per-runtime isolation as upstream CLIs ship the necessary knobs.
+For every other runtime (Hermes / Kimi / Kiro / Copilot / Cursor / Gemini / Pi / OpenCode / OpenClaw) the daemon leaves the user's `$HOME` untouched and does not actively manage user-level skill discovery — whether that runtime reads any user-level skill directory is entirely up to its own CLI. **The toggle is hidden in the Create Agent dialog and the Skills tab for these runtimes** to avoid implying behavior the daemon won't deliver today; a future change can extend per-runtime isolation as upstream CLIs ship the necessary knobs.
 
 ## Importing a skill
 

@@ -244,8 +244,8 @@
       "list_no_match": "No skills match.",
       "search_placeholder": "Search skills…",
       "local_label": "Allow locally installed skills",
-      "local_hint_off": "Off — for Claude Code and Codex, the agent ignores the host machine's user-global skill directory (~/.claude/skills/, ~/.codex/skills/). Recommended for shared agents — a broken local skill on one operator's machine cannot crash this agent. Other runtimes ignore this setting.",
-      "local_hint_on": "On (default) — for Claude Code and Codex, the host machine's user-global skill directory is merged alongside workspace skills. Other runtimes ignore this setting."
+      "local_hint_off": "Off — the agent ignores the host machine's user-global skill directory (~/.claude/skills/, ~/.codex/skills/). Recommended for shared agents — a broken local skill on one operator's machine cannot crash this agent. This control is shown only for Claude Code and Codex.",
+      "local_hint_on": "On (default) — the host machine's user-global skill directory is merged alongside workspace skills. This control is shown only for Claude Code and Codex."
     },
     "avatar": {
       "change_aria": "Change avatar",
@@ -301,8 +301,8 @@
       "intro": "Workspace skills assigned to this agent. Every runtime loads them.",
       "add_action": "Add skill",
       "local_label": "Allow locally installed skills",
-      "local_hint_off": "Off — for Claude Code and Codex, the agent ignores the host machine's user-global skill directory (~/.claude/skills/, ~/.codex/skills/). Recommended for shared agents — a broken local skill on one operator's machine cannot crash this agent. Other runtimes ignore this setting.",
-      "local_hint_on": "On (default) — for Claude Code and Codex, the host machine's user-global skill directory is merged alongside workspace skills. Other runtimes ignore this setting.",
+      "local_hint_off": "Off — the agent ignores the host machine's user-global skill directory (~/.claude/skills/, ~/.codex/skills/). Recommended for shared agents — a broken local skill on one operator's machine cannot crash this agent. This control is shown only for Claude Code and Codex.",
+      "local_hint_on": "On (default) — the host machine's user-global skill directory is merged alongside workspace skills. This control is shown only for Claude Code and Codex.",
       "local_saved_toast": "Skill merge setting saved",
       "local_save_failed_toast": "Failed to save skill merge setting",
       "empty_title": "No skills assigned",
