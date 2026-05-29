@@ -1728,6 +1728,14 @@ export function IssueDetail({ issueId, onDelete, onDone, defaultSidebarOpen = tr
           className="relative flex-1 overflow-y-auto"
         >
         <div className="mx-auto w-full max-w-4xl px-8 py-8">
+          {/* Agent live status — sticky bar at the top of the main content,
+              above the editable title. Keyed by issue id so switching issues
+              remounts and clears in-flight task state from the previous
+              issue. A single active task is directly actionable (Logs +
+              Stop); multiple collapse into a click-to-open popover. The full
+              execution log lives in the right panel via ExecutionLogSection —
+              this bar is just the "is anyone working?" anchor. */}
+          <AgentLiveCard key={id} issueId={id} />
           <TitleEditor
             key={`title-${id}`}
             defaultValue={issue.title}
@@ -1937,14 +1945,6 @@ export function IssueDetail({ issueId, onDelete, onDone, defaultSidebarOpen = tr
             </div>
 
             <LocalDirectoryHint projectId={issue?.project_id} />
-
-            {/* Agent live output — sticky banner in the activity section,
-                keyed by issue id so switching issues remounts the card and
-                clears any in-flight task state from the previous issue.
-                The execution log itself (per-task timeline + past runs)
-                lives in the right panel via ExecutionLogSection — this
-                card is just a header-style "agent is working" anchor. */}
-            <AgentLiveCard key={id} issueId={id} />
 
             {/* Timeline entries — virtualized via react-virtuoso to keep
                 first-paint cost O(viewport) instead of O(N). On a 500-comment
