@@ -324,15 +324,17 @@ function useResignedInlineMediaURL(
   attachmentId: string | undefined,
   pickedUrl: string,
 ): string {
+  const idFromPickedUrl = attachmentIdFromDownloadURL(pickedUrl);
+  const resignAttachmentId = attachmentId ?? idFromPickedUrl;
   const needsResign =
-    !!attachmentId &&
+    !!resignAttachmentId &&
     !!pickedUrl &&
-    attachmentIdFromDownloadURL(pickedUrl) !== undefined &&
+    idFromPickedUrl !== undefined &&
     (api.getBaseUrl?.() ?? "") !== "";
 
   const { data: fresh } = useQuery({
-    queryKey: ["attachment-inline-resign", attachmentId],
-    queryFn: () => api.getAttachment(attachmentId as string),
+    queryKey: ["attachment-inline-resign", resignAttachmentId],
+    queryFn: () => api.getAttachment(resignAttachmentId as string),
     enabled: needsResign,
     staleTime: RESIGN_STALE_MS,
     gcTime: RESIGN_STALE_MS,

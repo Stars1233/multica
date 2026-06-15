@@ -366,6 +366,36 @@ describe("Attachment — image dispatch", () => {
     expect(getAttachmentMock).toHaveBeenCalledWith(id);
   });
 
+  it("re-signs URL-only inline media when no resolver record is available (MUL-3254)", async () => {
+    // If the markdown parser has only the durable API URL, the attachment id
+    // is still recoverable from the URL itself. Token-mode clients must not
+    // depend on the context resolver having a hydrated record before they can
+    // fetch fresh signed metadata.
+    getBaseUrlMock.mockReturnValue("https://multica-api.copilothub.ai");
+    configStore.setState({ cdnDomain: "cdn.example.test", cdnSigned: true });
+    const id = "11111111-2222-3333-4444-555555555555";
+    const markdownUrl = `https://multica-api.copilothub.ai/api/attachments/${id}/download`;
+    const signed =
+      "https://cdn.example.test/uploads/ws/shot.png?Signature=fresh&Key-Pair-Id=K";
+    getAttachmentMock.mockResolvedValue(makeRecord({ id, download_url: signed }));
+
+    renderWithQuery(
+      <Attachment
+        attachment={{
+          kind: "url",
+          url: markdownUrl,
+          filename: "shot.png",
+          forceKind: "image",
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(document.querySelector("img")?.getAttribute("src")).toBe(signed);
+    });
+    expect(getAttachmentMock).toHaveBeenCalledWith(id);
+  });
+
   it("keeps the picked URL when fresh metadata has no signed download_url (MUL-3254)", async () => {
     // Non-CloudFront deployments return the API path again as download_url —
     // swapping to it gains nothing, so the original pick must stay.
